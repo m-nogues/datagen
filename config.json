@@ -1,0 +1,76 @@
+{
+    "network": {
+        "number_of_vms": 4,
+        "number_of_changes": 4,
+        "prefixe": "192.168.10.",
+        "services": [
+            {
+                "name": "sshd",
+                "commands": [
+                    {
+                        "name": "ssh",
+                        "parameters": [
+                            "tester@&ip"
+                        ]
+                    },
+                    {
+                        "name": "sftp",
+                        "parameters": [
+                            "tester@&ip"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "ftpd",
+                "commands": [
+                    {
+                        "name": "wget",
+                        "parameters": [
+                            "ftp://tester:password@&ip/hello.txt"
+                        ]
+                    },
+                    {
+                        "name": "curl",
+                        "parameters": [
+                            "ftp://tester:password@&ip/hello.txt"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "httpd",
+                "commands": [
+                    {
+                        "name": "wget",
+                        "parameters": [
+                            "&ip",
+                            "-r &ip"
+                        ]
+                    },
+                    {
+                        "name": "curl",
+                        "parameters": [
+                            "&ip"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "experiment": {
+        "start_date": "2018-08-02 13:00",
+        "end_date": "2018-08-02 17:00",
+        "max_actions_per_vm": 500
+    },
+    "hacker":{
+        "attacks":[
+            {
+                "name":"nmap",
+                "parameters": [
+                    "-T0 -sV --top-ports 5 &ip"
+                ]
+            }
+        ]
+    }
+}

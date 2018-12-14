@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+import pandas as pd
+
+
+def change_vm(df, change_number):
+    vm = df[df['change_number'] == change_number]
+    ip = vm['ip'].item()
+    # mac = vm['mac'].item()
+
+    os.system('nmcli con add con-name "static-enp0s3-' + str(change_number) + 
+              '" ifname enp0s3 type ethernet ip4 ' + ip + '/24')
+    # os.system(
+    #     'nmcli con mod "static-enp0s3-' + str(change_number) + '" 802-3-ethernet.cloned-mac-address ' + mac)
+    os.system('nmcli con up "static-enp0s3-' + str(change_number) + '"')
+    if change_number >= 1:
+        os.system('systemctl stop ' + 
+                  df[df['change_number'] == change_number - 1]['services'].item())
+    os.system('systemctl start ' + vm['services'].item())
+
+
+if __name__ == '__main__':
+    args = sys.argv
+
+    change_vm(pd.read_csv(args[1]), int(args[2]))
+    exit(0)
