@@ -1,4 +1,4 @@
-# network-model-creator
+# network-data-generator
 
 Python framework for an easy creation of a network model for scientific pcap creation.
 
