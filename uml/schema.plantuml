@@ -1,0 +1,113 @@
+@startuml
+
+package model{
+    class action{
+        +string name
+        +datetime timestamp
+        +set parameters
+        +void execute()
+    }
+    class attack{
+        +service service
+        +set commands
+        +void add_command(command)
+        +void del_command(command)
+    }
+    class behavior{
+        +string name
+        +dict bias
+        +void change_bias(key, value)
+        +float get_bias(key)
+    }
+    class command{
+        +string name
+        +set parameters
+        +void add_parameter()
+        +void del_parameter()
+    }
+    class hacker{
+        +string ip
+        +string mac
+        +set actions
+        +set attacks
+        +bool started
+        +void add_action(action)
+        +void del_action(action)
+        +void add_attack(attack)
+        +void del_attack(attack)
+        +void start()
+        +void stop()
+        +dict to_csv()
+    }
+    class machine{
+        +string ip
+        +string mac
+        +set vms
+        +void add_vm(vm)
+        +void del_vm(vm)
+        +void launch_vm(vm, declaration_csv)
+    }
+    class service{
+        +string name
+        +set commands
+        +bool started
+        +void add_command(command)
+        +void del_command(command)
+        +void start()
+        +void stop()
+    }
+    class vm{
+        +string ip
+        +string mac
+        +set services
+        +behavior behavior
+        +set actions
+        +bool started
+        +void add_service(service)
+        +void del_service(service)
+        +void update_behavior(service, bias)
+        +void add_action(action)
+        +void del_action(action)
+        +void start()
+        +void stop()
+        +dict to_csv()
+    }
+}
+
+package generators{
+    class action_generator{
+        +datetime[] date_range(start, end)
+        +datetime get_random_time_in_interval(interval, duration, start_date, change_number)
+        +string format_parameter(parameter, vm)
+        +action get_random_action(vms, interval, duration, start_date, change_number)
+        +actions[] prepare_actions(vms, interval, max_actions, duration, start_date, change_number, index)
+        +actions[] generate(vm, vms, conf, change_number, index)
+        +actions[] hacker(hacker, conf, vms)
+    }
+    class crontab_generator{
+        +void gen_cron(actions, cron)
+        +void write_data(crontabs, name='crontab')
+        +void generate(vms, number_of_vms)
+        +void hacker(hacker)
+    }
+    class hacker_generator{
+        +string rand_mac()
+        +string rand_ip(prefixe)
+        +(string,string) find_ip_and_mac(vms, prefixe)
+        +hacker prepare_hacker(conf, vms)
+        +void write_data(hacker)
+        +hacker generate(vms, conf, test)
+    }
+    class vm_generator{
+        +string rand_mac()
+        +set rand_services(services)
+        +string rand_ip(prefixe)
+        +(string,string) gen_rand_ip_and_mac(vms, number_of_vms, prefixe)
+        +vm gen_vm(vms, number_of_vms, prefixe, services)
+        +vm[] prepare_vms(conf)
+        +void write_data(vms, number_of_vms)
+        +vm[] generate(conf, test)
+    }
+}
+
+@enduml

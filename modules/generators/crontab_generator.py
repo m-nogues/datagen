@@ -20,8 +20,6 @@ def gen_cron(actions, cron):
             raise AssertionError('incorrect job from action:' + ''.join(['\n\t\t' +
                                                                          line for line in str(a).split('\n')]))
 
-    return
-
 
 def write_data(crontabs, name='crontab'):
     """Writes the crontabs to disk
@@ -48,8 +46,6 @@ def generate(vms, number_of_vms):
         gen_cron(vms[i].actions, crontabs[i % number_of_vms])
 
     write_data(crontabs)
-
-    return
 
 
 def hacker(hacker):
