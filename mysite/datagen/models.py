@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from django.db import models
 
 # Create your models here.
@@ -31,7 +32,7 @@ class Command(models.Model):
 
 class Service(models.Model):
     name = models.CharField(unique=True, max_length=200)
-    commands = models.ForeignKey(Command, on_delete=models.CASCADE)
+    commands = models.ManyToManyField(Command)
 
     def __str__(self):
         ret = 'name:\t' + self.name + '\ncommands:'
@@ -79,7 +80,7 @@ class Behavior(models.Model):
 
 
 class Hacker(models.Model):
-    ip = models.CharField(unique=True, max_length=200)
+    ip = models.GenericIPAddressField(unique=True)
     mac = models.CharField(unique=True, max_length=200)
     actions = models.ForeignKey(Action, on_delete=models.CASCADE)
     attacks = models.ForeignKey(Attack, on_delete=models.CASCADE)
@@ -104,7 +105,7 @@ class Hacker(models.Model):
 
 
 class Vm(models.Model):
-    ip = models.CharField(unique=True, max_length=200)
+    ip = models.GenericIPAddressField(unique=True)
     mac = models.CharField(unique=True, max_length=200)
     services = models.ForeignKey(Service, on_delete=models.CASCADE)
     behavior = models.ForeignKey(Behavior, on_delete=models.CASCADE)
@@ -140,17 +141,37 @@ class Vm(models.Model):
         return ret
 
 
-class Machine(models.Model):
-    ip = models.CharField(unique=True, max_length=200)
-    mac = models.CharField(unique=True, max_length=200)
-    vms = models.ForeignKey(Vm, on_delete=models.CASCADE)
+class Experiment(models.Model):
+    name = models.CharField(max_length=200)
+    network = models.GenericIPAddressField(default='192.168.10.0')
+    started = models.BooleanField(default=False)
+
+    nb_vms = models.IntegerField('nombre de vms', default=4)
+    nb_hackers = models.IntegerField('nombre de hackers', default=1)
+    max_actions = models.IntegerField('nombre d\'actions maximum par vms', default=500)
+
+    start_date = models.DateTimeField(
+        'start', default=datetime.now() + timedelta(hours=1))
+    end_date = models.DateTimeField(
+        'end', default=datetime.now() + timedelta(hours=5))
+
+    hackers = models.ManyToManyField(Hacker)
+    vms = models.ManyToManyField(Vm)
 
     def __str__(self):
-        ret = 'ip:\t' + self.ip + '\nmac:\t' + self.mac + '\nvms:'
+        ret = 'name:\t' + self.name + '\nvms:'
         i = 0
-        for vm in sorted(self.vms):
+        for vm in self.vms.all():
             ret += '\n\tvm_' + \
                 str(i) + ':' + ''.join(['\n\t\t' +
                                         line for line in str(vm).split('\n')])
+            i += 1
+
+        i = 0
+        ret += '\nhackers:'
+        for hacker in self.hackers.all():
+            ret += '\n\thacker_' + \
+                str(i) + ':' + ''.join(['\n\t\t' +
+                                        line for line in str(hacker).split('\n')])
             i += 1
         return ret
