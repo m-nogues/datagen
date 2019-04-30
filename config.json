@@ -1,11 +1,11 @@
 {
     "network": {
-        "number_of_vms": 4,
-        "number_of_changes": 4,
+        "number_of_vms": 3,
+        "number_of_changes": 1,
         "prefixe": "192.168.10.",
         "services": [
             {
-                "name": "sshd",
+                "name": "ssh",
                 "commands": [
                     {
                         "name": "ssh",
@@ -22,24 +22,24 @@
                 ]
             },
             {
-                "name": "ftpd",
+                "name": "proftpd",
                 "commands": [
                     {
                         "name": "wget",
                         "parameters": [
-                            "ftp://tester:password@&ip/hello.txt"
+                            "ftp://tester:test@&ip/hello.txt"
                         ]
                     },
                     {
                         "name": "curl",
                         "parameters": [
-                            "ftp://tester:password@&ip/hello.txt"
+                            "ftp://tester:test@&ip/hello.txt"
                         ]
                     }
                 ]
             },
             {
-                "name": "httpd",
+                "name": "apache2",
                 "commands": [
                     {
                         "name": "wget",
@@ -59,9 +59,9 @@
         ]
     },
     "experiment": {
-        "start_date": "2018-08-02 13:00",
-        "end_date": "2018-08-02 17:00",
-        "max_actions_per_vm": 500
+        "start_date": "2019-04-28 15:00",
+        "end_date": "2019-04-29 15:00",
+        "max_actions_per_vm": 9600
     },
     "hacker":{
         "attacks":[

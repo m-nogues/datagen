@@ -22,7 +22,7 @@ class Action(models.Model):
 
 class Command(models.Model):
     name = models.CharField(max_length=200)
-    parameters = models.ManyToManyField(Parameter)
+    parameters = models.ManyToManyField(Parameter, blank=True)
 
     def __str__(self):
         ret = 'name:\t' + self.name + '\nparameters:' + \
@@ -45,17 +45,12 @@ class Service(models.Model):
 
 
 class Attack(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    commands = models.ForeignKey(Command, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    parameters = models.ManyToManyField(Parameter)
 
     def __str__(self):
-        ret = 'service:\n'+''.join(['\n\t\t' +
-                                    line for line in str(self.service).split('\n')])+'\ncommands:'
-        i = 0
-        for command in self.commands.all():
-            ret += '\n\tcommand_' + str(i) + ':' + ''.join(['\n\t\t' +
-                                                            line for line in str(command).split('\n')])
-            i += 1
+        ret = 'name:\t' + self.name + '\nparameters:' + \
+            ''.join(['\n\t' + str(p) for p in self.parameters.all()])
         return ret
 
 
@@ -82,8 +77,8 @@ class Behavior(models.Model):
 class Hacker(models.Model):
     ip = models.GenericIPAddressField(unique=True)
     mac = models.CharField(unique=True, max_length=200)
-    actions = models.ForeignKey(Action, on_delete=models.CASCADE)
-    attacks = models.ForeignKey(Attack, on_delete=models.CASCADE)
+    actions = models.ManyToManyField(Action, blank=True)
+    attacks = models.ManyToManyField(Attack)
 
     def __str__(self):
         ret = 'ip:\t' + self.ip + '\nmac:\t' + self.mac + '\nactions:'
@@ -107,9 +102,9 @@ class Hacker(models.Model):
 class Vm(models.Model):
     ip = models.GenericIPAddressField(unique=True)
     mac = models.CharField(unique=True, max_length=200)
-    services = models.ForeignKey(Service, on_delete=models.CASCADE)
+    services = models.ManyToManyField(Service)
     behavior = models.ForeignKey(Behavior, on_delete=models.CASCADE)
-    actions = models.ForeignKey(Action, on_delete=models.CASCADE)
+    actions = models.ManyToManyField(Action, blank=True)
 
     def __str__(self):
         ret = 'ip:\t' + self.ip + '\nmac:\t' + self.mac + '\nservices:'
@@ -155,8 +150,8 @@ class Experiment(models.Model):
     end_date = models.DateTimeField(
         'end', default=datetime.now() + timedelta(hours=5))
 
-    hackers = models.ManyToManyField(Hacker)
-    vms = models.ManyToManyField(Vm)
+    hackers = models.ManyToManyField(Hacker, blank=True)
+    vms = models.ManyToManyField(Vm, blank=True)
 
     def __str__(self):
         ret = 'name:\t' + self.name + '\nvms:'
