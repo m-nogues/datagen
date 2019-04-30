@@ -11,6 +11,6 @@ def index(request):
     context = {'experiment_list': experiment_list}
     return render(request, 'datagen/index.html', context)
 
-def detail(request, experiment_id):
-    experiment = get_object_or_404(Experiment, pk=experiment_id)
-    return render(request, 'datagen/detail.html', {'experiment': experiment})
+def experiment(request, experiment_id):
+    exp = get_object_or_404(Experiment, pk=experiment_id)
+    return render(request, 'datagen/experiment.html', {'experiment': exp})

@@ -1,0 +1,126 @@
+{% load i18n static %}
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl" {% endif %}>
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
+    {% block extrastyle %}{% endblock %}
+    {% if LANGUAGE_BIDI %}
+    <link rel="stylesheet" type="text/css"
+        href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
+    {% block extrahead %}{% endblock %}
+    {% block responsive %}
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+    {% if LANGUAGE_BIDI %}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive_rtl.css" %}">{% endif %}
+    {% endblock %}
+    {% block blockbots %}
+    <meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+</head>
+{% load i18n %}
+
+<body class="app-datagen model-experiment">
+
+    <!-- Container -->
+    <div id="container">
+
+        <!-- Header -->
+        <div id="header">
+            <div id="branding">
+                <h1 id="site-name"><a href="/datagen/">datagen</a></h1>
+            </div>
+        </div>
+        <!-- END Header -->
+
+        <div class="breadcrumbs">
+            <a href="/datagen/">Home</a> > {{ experiment.name }}
+        </div>
+
+        <!-- Content -->
+        <div id="content" class="flex">
+
+            <h1>{{ experiment.name }}</h1>
+
+            <div id="content-main">
+                <ul class="object-tools">
+                    <li>
+                        <a href="/admin/datagen/experiment/change/" class="changelink">
+                            Modify experiment
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="module" id="changelist">
+                    <form id="changelist-form" method="post" novalidate=""><input type="hidden"
+                            name="csrfmiddlewaretoken"
+                            value="rhQ5VHoWvWoXjBkvPEYpoxJjpuEFdORMBaILxOeC4tdnkatxE1MyJA28ScmYaTPg">
+                        <div class="results">
+                            <table id="result_list" width="100%">
+                                <thead>
+                                    <caption>
+                                        <div class="text"><span>Vms</span></div>
+                                    </caption>
+                                </thead>
+                                <tbody>
+                                    {% for vm in experiment.vms.all %}
+                                    <tr class="model-experiment">
+                                        <th scope="row">
+                                            <a href="/vm/{{ vm.id }}/">vm {{ vm.id }}</a>
+                                        </th>
+                                        <td align="right">
+                                            <a href="/admin/datagen/vm/{{ vm.id }}/change/"
+                                                class="changelink">Change</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="module" id="changelist">
+                        <form id="changelist-form" method="post" novalidate=""><input type="hidden"
+                                name="csrfmiddlewaretoken"
+                                value="rhQ5VHoWvWoXjBkvPEYpoxJjpuEFdORMBaILxOeC4tdnkatxE1MyJA28ScmYaTPg">
+                            <div class="results">
+                                <table id="result_list" width="100%">
+                                    <thead>
+                                        <caption>
+                                            <div class="text"><span>Hackers</span></div>
+                                        </caption>
+                                    </thead>
+                                    <tbody>
+                                        {% for hacker in experiment.hackers.all %}
+                                        <tr class="model-experiment">
+                                            <th scope="row">
+                                                <a href="/hacker/{{ hacker.id }}/">hacker {{ hacker.id }}</a>
+                                            </th>
+                                            <td align="right">
+                                                <a href="/admin/datagen/hacker/{{ hacker.id }}/change/"
+                                                    class="changelink">Change</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+
+                <pre>{{ experiment }}</pre>
+
+            </div>
+
+            <br class="clear">
+        </div>
+        <!-- END Content -->
+
+        <div id="footer"></div>
+    </div>
+    <!-- END Container -->
+
+</body>
