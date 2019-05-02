@@ -3,11 +3,9 @@
         "number_of_vms": 3,
         "number_of_changes": 1,
         "prefixe": "192.168.10.",
-        "services": [
-            {
+        "services": [{
                 "name": "ssh",
-                "commands": [
-                    {
+                "commands": [{
                         "name": "ssh",
                         "parameters": [
                             "tester@&ip"
@@ -23,8 +21,7 @@
             },
             {
                 "name": "proftpd",
-                "commands": [
-                    {
+                "commands": [{
                         "name": "wget",
                         "parameters": [
                             "ftp://tester:test@&ip/hello.txt"
@@ -40,8 +37,7 @@
             },
             {
                 "name": "apache2",
-                "commands": [
-                    {
+                "commands": [{
                         "name": "wget",
                         "parameters": [
                             "&ip",
@@ -59,18 +55,16 @@
         ]
     },
     "experiment": {
-        "start_date": "2019-04-28 15:00",
-        "end_date": "2019-04-29 15:00",
+        "start_date": "2019-05-02 15:00",
+        "end_date": "2019-05-03 15:00",
         "max_actions_per_vm": 9600
     },
-    "hacker":{
-        "attacks":[
-            {
-                "name":"nmap",
-                "parameters": [
-                    "-T0 -sV --top-ports 5 &ip"
-                ]
-            }
-        ]
+    "hacker": {
+        "attacks": [{
+            "name": "nmap",
+            "parameters": [
+                "-T0 -sV --top-ports 5 &ip"
+            ]
+        }]
     }
 }
