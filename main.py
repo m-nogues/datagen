@@ -1,18 +1,18 @@
 #!/usr/bin/python
-import json
 import argparse
+import json
 from datetime import datetime, timedelta
 
-from modules.generators import vm_generator, hacker_generator
-from modules.model import service, command
+from modules.generators import hacker_generator, vm_generator
+from modules.model import command, service
 
 
 def configure(config_file):
     """Read the configuration file or creates the default one if it does not exist.
-    
+
     Arguments:
         config_file {string} -- The configuration file
-    
+
     Returns:
         dict -- The dictionnary containing the configuration
     """
