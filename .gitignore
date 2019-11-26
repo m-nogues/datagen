@@ -64,3 +64,4 @@ target/
 *.pcap
 vms/
 pcaps/
+*.json

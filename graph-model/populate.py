@@ -4,7 +4,28 @@ import json
 
 from neo4j import GraphDatabase
 
-from . import model
+import model
+
+
+def network_import(driver, path):
+    network = {}
+    with open(path, 'r') as f:
+        network = json.load(f)
+
+    # Processing
+    machines = {}
+    for machine in network:
+        machines[machine] = model.Machine.create_machine(
+            driver, network[machine]['name'], network[machine]['ip'])
+
+    for machine in network:
+        for rel in network[machine]['relations']:
+            for protocol in network[machine]['relations'][rel]:
+                machines[machine].create_connection(
+                    driver, machines[rel], protocol,
+                    network[machine]['relations'][rel][protocol]
+                )
+
 
 if __name__ == "__main__":
     # Argument parsing
@@ -23,22 +44,9 @@ if __name__ == "__main__":
 
     # Initialisation
     driver = GraphDatabase.driver(
-        args.bolt_address, auth=(args.user, args.password))
+        args.address, auth=(args.user, args.password))
 
-    network = {}
-    with open(args.json, 'r') as f:
-        network = json.load(f)
+    for path in args.json:
+        network_import(driver, path)
 
-    # Processing
-    machines = {}
-    for machine in network:
-        machines[machine] = model.Machine.create_machine(
-            driver, network[machine]['name'], network[machine]['ip'])
-
-    for machine in network:
-        for rel in network[machine]['relations']:
-            for protocol in network[machine]['relations'][rel]:
-                machines[machine].create_connection(
-                    driver, machines[rel], protocol,
-                    network[machine]['relations'][rel][protocol]
-                )
+    driver.close()
