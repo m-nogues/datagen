@@ -7,30 +7,26 @@ from neo4j import GraphDatabase
 import model
 
 
-def network_import(driver, path):
-    network = {}
-    with open(path, 'r') as f:
-        network = json.load(f)
-
+def network_import(driver, json):
     # Processing
     machines = {}
-    for machine in network:
+    for machine in json:
         machines[machine] = model.Machine.create_machine(
-            driver, network[machine]['name'], network[machine]['ip'])
+            driver, json[machine]['name'], json[machine]['ip'])
 
-    for machine in network:
-        for rel in network[machine]['relations']:
-            for protocol in network[machine]['relations'][rel]:
+    for machine in json:
+        for rel in json[machine]['relations']:
+            for protocol in json[machine]['relations'][rel]:
                 machines[machine].create_connection(
                     driver, machines[rel], protocol,
-                    network[machine]['relations'][rel][protocol]
+                    json[machine]['relations'][rel][protocol]
                 )
 
 
 if __name__ == "__main__":
     # Argument parsing
     parser = argparse.ArgumentParser(
-        description='Python framework for an easy creation of a network model')
+        description='Python script to graph a network model')
     parser.add_argument('-u', '--user', nargs='?', default='neo4j',
                         help='The user to connect as')
     parser.add_argument('-p', '--password', nargs='?', default='neo4j',
@@ -47,6 +43,9 @@ if __name__ == "__main__":
         args.address, auth=(args.user, args.password))
 
     for path in args.json:
-        network_import(driver, path)
+        network = {}
+        with open(path, 'r') as f:
+            network = json.load(f)
+        network_import(driver, network)
 
     driver.close()
