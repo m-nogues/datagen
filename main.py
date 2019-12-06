@@ -54,7 +54,7 @@ def configure(config_file):
                 {
                     'name': 'sshd',
                     'commands': [
-                        {'name': 'ssh', 'parameters': ['tester@&ip']},
+                        {'name': '22', 'parameters': ['tester@&ip']},
                         {'name': 'sftp', 'parameters': ['tester@&ip']}
                     ]
                 },

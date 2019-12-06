@@ -4,15 +4,15 @@ import json
 
 from neo4j import GraphDatabase
 
-import model
+from model import Machine, create_machine
 
 
 def network_import(driver, json):
     # Processing
     machines = {}
     for machine in json:
-        machines[machine] = model.Machine.create_machine(
-            driver, json[machine]['name'], json[machine]['ip'])
+        machines[machine] = create_machine(
+            json[machine]['name'], json[machine]['ip'])
 
     for machine in json:
         for rel in json[machine]['relations']:
