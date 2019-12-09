@@ -4,26 +4,9 @@ from scapy.all import *
 from neo4j import GraphDatabase
 import argparse
 from populate import network_import
+from tables import machine_behavior, flow_matrix, machine_role
 from scapy.layers.inet import IP, TCP, UDP
-from scapy.layers.inet6 import IPv6
-
-
-def expand(x):
-    yield x
-    while x.payload:
-        x = x.payload
-        yield x
-
-
-def nb_pkt_to_percentage(network):
-    for src in network:
-        for dst in network[src]["relations"]:
-            total_pkt = 0
-            for port in network[src]["relations"][dst]:
-                total_pkt += network[src]["relations"][dst][port]
-            for port in network[src]["relations"][dst]:
-                network[src]["relations"][dst][port] = (network[src]["relations"][dst][port] / total_pkt) * 100
-    return network
+# from scapy.layers.inet6 import IPv6
 
 
 def pcap_to_json(pkt_file):
@@ -32,6 +15,8 @@ def pcap_to_json(pkt_file):
         if p.haslayer(IP):
             layer = p[IP]
             src, dst = layer.src, layer.dst
+            if src == '0.0.0.0' or dst == '0.0.0.0':
+                continue
             if src not in network:
                 network[src] = {"ip": src, "relations": {}}
             if layer.haslayer(TCP):
@@ -99,21 +84,22 @@ if __name__ == "__main__":
                         help='The url to connect to the server')
     parser.add_argument('-t', '--test', action='store_true',
                         help='allows to run the script to just generate the json files')
-    parser.add_argument('pcap', nargs='+',
-                        help='PCAP file containing the network to graph')
+    parser.add_argument('pcap', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
     # Test
     if args.test:
-        i = 0
-        for pcap in args.pcap:
-            with open('result_' + str(i) + '.json', 'w') as f:
-                json.dump(pcap_to_json(rdpcap(pcap)), f)
-            i += 1
+        network = pcap_to_json(rdpcap(args.pcap))
+
+        machine_role(network)
+
+        with open('result.json', 'w') as f:
+            json.dump(network, f)
     else:
         # Initialisation
         driver = GraphDatabase.driver(
             args.address, auth=(args.user, args.password))
 
-        for pcap in args.pcap:
-            network_import(driver, pcap_to_json(rdpcap(pcap)))
+        network = pcap_to_json(rdpcap(args.pcap))
+
+        network_import(driver, network)
