@@ -2,7 +2,7 @@ import csv
 
 
 def machine_behavior(network):
-    table = network
+    table = dict(network)
     for src in table:
         fields = ['Port'] + [*table[src]["relations"]]
         ports = set()
@@ -17,14 +17,14 @@ def machine_behavior(network):
             writer = csv.DictWriter(f, fieldnames=fields)
             writer.writeheader()
             for port in ports:
-                row = {'port': port}
+                row = {'Port': port}
                 for dst in table[src]["relations"]:
                     row[dst] = table[src]["relations"][dst][port] if port in table[src]["relations"][dst] else 0
                 writer.writerow(row)
 
 
 def flow_matrix(network):
-    table = network
+    table = dict(network)
     fields = ['IP\\IP'] + [*table]
     with open('csv/flow_matrix.csv', 'w') as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -37,7 +37,7 @@ def flow_matrix(network):
 
 
 def machine_use(network):
-    table = network
+    table = dict(network)
     fields = ['IP\\Port']
     ports = set()
     for src in table:
@@ -66,13 +66,15 @@ def machine_use(network):
 
 
 def machine_role(network):
-    table = network
+    table = dict(network)
     fields = ['IP\\Port']
     ports = set()
     for src in table:
         table[src]["ports"] = {}
     for src in table:
         for dst in table[src]["relations"]:
+            if dst not in table:
+                continue
             for port in table[src]["relations"][dst]:
                 if port in table[dst]["ports"]:
                     table[dst]["ports"][port] += table[src]["relations"][dst][port]

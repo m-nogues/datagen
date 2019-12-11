@@ -7,19 +7,20 @@ from neo4j import GraphDatabase
 from model import Machine, create_machine
 
 
-def network_import(driver, json):
+def network_import(driver, network):
     # Processing
     machines = {}
-    for machine in json:
-        machines[machine] = create_machine(
-            json[machine]['name'], json[machine]['ip'])
+    for machine in network:
+        machines[machine] = create_machine(driver, network[machine]["ip"])
 
-    for machine in json:
-        for rel in json[machine]['relations']:
-            for protocol in json[machine]['relations'][rel]:
+    for machine in network:
+        for rel in network[machine]["relations"]:
+            if rel not in machines:
+                continue
+            for protocol in network[machine]["relations"][rel]:
                 machines[machine].create_connection(
                     driver, machines[rel], protocol,
-                    json[machine]['relations'][rel][protocol]
+                    network[machine]["relations"][rel][protocol]
                 )
 
 
@@ -43,7 +44,6 @@ if __name__ == "__main__":
         args.address, auth=(args.user, args.password))
 
     for path in args.json:
-        network = {}
         with open(path, 'r') as f:
             network = json.load(f)
         network_import(driver, network)

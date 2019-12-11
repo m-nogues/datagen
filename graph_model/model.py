@@ -4,7 +4,7 @@
 
 def create_machine(driver, ip):
     with driver.session() as session:
-        session.run('create (' + ip + ':Machine {ip:\'' + ip + '\'})')
+        session.run('create (:Machine {{ip:\'{}\'}})'.format(ip))
         session.close()
     return Machine(ip)
 
@@ -15,11 +15,8 @@ class Machine:
 
     def create_connection(self, driver, machine, protocol, rate):
         with driver.session() as session:
-            session.run('match (a:Machine), (b:Machine) where a.ip = \''
-                        + self.__ip + '\' and b.ip = \''
-                        + machine.ip +
-                        '\' create (a)-[r:EXCHANGED {protocol: \''
-                        + protocol + '\', rate:\'' + str(rate) + '%\'}]->(b)')
+            session.run('match (a:Machine), (b:Machine) where a.ip = \'{}\' and b.ip = \'{}\' create (a)-[r:EXCHANGED '
+                        '{{protocol: \'{}\', rate:\'{:f}%\'}}]->(b)'.format(self.ip, machine.ip, protocol, rate))
             session.close()
 
     # Attributes

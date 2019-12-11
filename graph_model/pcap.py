@@ -1,11 +1,13 @@
 import json
+import argparse
 
 from scapy.all import *
 from neo4j import GraphDatabase
-import argparse
 from populate import network_import
-from tables import machine_behavior, flow_matrix, machine_role
+from tables import machine_behavior, flow_matrix, machine_role, machine_use
 from scapy.layers.inet import IP, TCP, UDP
+
+
 # from scapy.layers.inet6 import IPv6
 
 
@@ -96,10 +98,14 @@ if __name__ == "__main__":
         with open('result.json', 'w') as f:
             json.dump(network, f)
     else:
-        # Initialisation
+        # Generation of the JSON and the tables
+        network = pcap_to_json(rdpcap(args.pcap))
+        machine_behavior(network)
+        machine_role(network)
+        machine_use(network)
+        flow_matrix(network)
+
+        # Sending to Neo4j
         driver = GraphDatabase.driver(
             args.address, auth=(args.user, args.password))
-
-        network = pcap_to_json(rdpcap(args.pcap))
-
         network_import(driver, network)
