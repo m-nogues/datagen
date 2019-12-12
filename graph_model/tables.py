@@ -17,9 +17,12 @@ def machine_behavior(network):
             writer = csv.DictWriter(f, fieldnames=fields)
             writer.writeheader()
             for port in ports:
-                row = {'Port': port}
+                row = {}
                 for dst in table[src]["relations"]:
                     row[dst] = table[src]["relations"][dst][port] if port in table[src]["relations"][dst] else 0
+                if 0 >= sum(row.values()):
+                    continue
+                row['Port'] = port
                 writer.writerow(row)
 
 
@@ -30,9 +33,12 @@ def flow_matrix(network):
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for src in table:
-            row = {'IP\\IP': src}
+            row = {}
             for dst in table:
-                row[dst] = 1 if dst in table[src]["relations"] else 0
+                row[dst] = sum(table[src]["relations"][dst].values()) if dst in table[src]["relations"] else 0
+            if 0 >= sum(row.values()):
+                continue
+            row['IP\\IP'] = src
             writer.writerow(row)
 
 
@@ -59,9 +65,12 @@ def machine_use(network):
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for src in table:
-            row = {'IP\\Port': src}
+            row = {}
             for port in ports:
                 row[port] = table[src]["ports"][port] if port in table[src]["ports"] else 0
+            if 0 >= sum(row.values()):
+                continue
+            row['IP\\Port'] = src
             writer.writerow(row)
 
 
@@ -93,7 +102,10 @@ def machine_role(network):
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for src in table:
-            row = {'IP\\Port': src}
+            row = {}
             for port in ports:
                 row[port] = table[src]["ports"][port] if port in table[src]["ports"] else 0
+            if 0 >= sum(row.values()):
+                continue
+            row['IP\\Port'] = src
             writer.writerow(row)

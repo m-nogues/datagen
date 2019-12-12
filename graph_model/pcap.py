@@ -92,8 +92,10 @@ if __name__ == "__main__":
     # Test
     if args.test:
         network = pcap_to_json(rdpcap(args.pcap))
-
+        machine_behavior(network)
         machine_role(network)
+        machine_use(network)
+        flow_matrix(network)
 
         with open('result.json', 'w') as f:
             json.dump(network, f)
