@@ -1,8 +1,9 @@
 import csv
+from copy import deepcopy
 
 
 def machine_behavior(network):
-    table = dict(network)
+    table = deepcopy(network)
     for src in table:
         fields = ['Port'] + [*table[src]["relations"]]
         ports = set()
@@ -27,7 +28,7 @@ def machine_behavior(network):
 
 
 def flow_matrix(network):
-    table = dict(network)
+    table = deepcopy(network)
     fields = ['IP\\IP'] + [*table]
     with open('csv/flow_matrix.csv', 'w') as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -43,7 +44,7 @@ def flow_matrix(network):
 
 
 def machine_use(network):
-    table = dict(network)
+    table = deepcopy(network)
     fields = ['IP\\Port']
     ports = set()
     for src in table:
@@ -75,7 +76,7 @@ def machine_use(network):
 
 
 def machine_role(network):
-    table = dict(network)
+    table = deepcopy(network)
     fields = ['IP\\Port']
     ports = set()
     for src in table:
