@@ -11,7 +11,7 @@ def network_import(driver, network):
     # Processing
     machines = {}
     for machine in network:
-        machines[machine] = create_machine(driver, network[machine]["ip"])
+        machines[machine] = create_machine(driver, network[machine])
 
     for machine in network:
         for rel in network[machine]["relations"]:

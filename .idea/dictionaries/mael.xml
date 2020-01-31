@@ -2,7 +2,9 @@
   <dictionary name="mael">
     <words>
       <w>dport</w>
+      <w>noto</w>
       <w>pcap</w>
+      <w>visjs</w>
     </words>
   </dictionary>
 </component>

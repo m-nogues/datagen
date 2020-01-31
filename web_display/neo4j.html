@@ -1,0 +1,117 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <title>Graph view</title>
+        <style type="text/css">
+            html,
+            body {
+                font: 16pt noto;
+            }
+
+            #viz {
+                width: 100%;
+                height: 85vh;
+                font: 22pt noto;
+            }
+
+            #cypher-area {
+                width: 100%;
+                height: 15vh;
+            }
+
+            #cypher {
+                width: 100%;
+                height: 5vh;
+                font: 10pt noto;
+            }
+        </style>
+
+        <style type="text/css" src="https://unpkg.com/vis-network/dist/vis-network.min.css"></style>
+        <script src="lib/neo4j_vis.js" type="module"></script>
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+                integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
+        </script>
+
+        <script type="text/javascript">
+            var viz;
+
+            function draw() {
+                var config = {
+                    container_id: "viz",
+                    server_url: "bolt://localhost:7687",
+                    server_user: "neo4j",
+                    server_password: "iN2WuicrfZZ3s7d",
+                    labels: {
+                        "Machine": {
+                            "caption": "ip",
+                            "size": "total_pkt",
+                            "community": "protocol"
+                        }
+                    },
+                    relationships: {
+                        "EXCHANGED": {
+                            "thickness": "rate",
+                            "caption": "protocol"
+                        }
+                    },
+                    initial_cypher: "MATCH (n)-[r:EXCHANGED]->(m) RETURN n,r,m",
+                    arrows: true,
+                    hierarchical_layout: true,
+                    hierarchical_sort_method: "directed"
+                };
+
+                viz = new Neo4Vis.default(config);
+                viz.render();
+                console.log(viz);
+            }
+        </script>
+    </head>
+
+    <body onload="draw()">
+        <div id="viz"></div>
+
+        <div id="cypher-area">
+            Cypher query:
+            <textarea rows="4" cols=160 id="cypher">MATCH (n)-[r:EXCHANGED]->(m) RETURN n,r,m</textarea>
+            <input type="submit" value="Submit" id="reload">
+            <input type="submit" value="Stabilize" id="stabilize">
+        </div>
+
+
+    </body>
+
+    <script>
+        $("#reload").click(function () {
+            var cypher = $("#cypher").val();
+
+            if (cypher.length > 3) {
+                viz.renderWithCypher(cypher);
+            } else {
+                console.log("reload");
+                viz.reload();
+            }
+        });
+
+        $("#stabilize").click(function () {
+            viz.stabilize();
+        })
+
+        $(function () {
+            $("#cypher").keypress(function (e) {
+                if (e.which == 13) {
+                    var cypher = $("#cypher").val();
+
+                    if (cypher.length > 3) {
+                        viz.renderWithCypher(cypher);
+                    } else {
+                        console.log("reload");
+                        viz.reload();
+                    }
+                }
+            });
+        });
+    </script>
+</html>
