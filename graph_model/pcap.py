@@ -2,76 +2,58 @@ import argparse
 import json
 
 from neo4j import GraphDatabase
-from populate import network_import
 from scapy.all import *
 from scapy.layers.inet import IP, TCP, UDP
+
+from populate import network_import
 from tables import machine_behavior, flow_matrix, machine_role, machine_use
 
 
-# from scapy.layers.inet6 import IPv6
-
-
 def pcap_to_json(pkt_file):
-    network = {}
+    network, ip_to_filter = {}, ['0.0.0.0']
     for p in pkt_file:
+        # Filter packets not having an IP layer
         if p.haslayer(IP):
             layer = p[IP]
-            src, dst = layer.src, layer.dst
-            if src == '0.0.0.0' or dst == '0.0.0.0':
-                continue
-            if src not in network:
-                network[src] = {"ip": src, "relations": {}}
-            if layer.haslayer(TCP):
-                sport, dport = layer[TCP].sport, layer[TCP].dport
-                if (49152 <= dport <= 65535) or (dst in network
-                                                 and src in network[dst]["relations"]
-                                                 and sport in network[dst]["relations"][src]):
-                    continue
-                if dst in network[src]["relations"]:
-                    if dport in network[src]["relations"][dst]:
-                        network[src]["relations"][dst][dport] += 1
-                    else:
-                        network[src]["relations"][dst][dport] = 1
-                else:
-                    network[src]["relations"][dst] = {dport: 1}
-            elif layer.haslayer(UDP):
-                sport, dport = layer[UDP].sport, layer[UDP].dport
-                if dport > 1024:
-                    continue
-                if dst in network[src]["relations"]:
-                    if dport in network[src]["relations"][dst]:
-                        network[src]["relations"][dst][dport] += 1
-                    else:
-                        network[src]["relations"][dst][dport] = 1
-                else:
-                    network[src]["relations"][dst] = {dport: 1}
-        # if p.haslayer(IPv6):
+        # elif p.haslayer(IPv6):
         #     layer = p[IPv6]
-        #     src, dst = layer.src, layer.dst
-        #     if src not in network:
-        #         network[src] = {"ip": src, "relations": {}}
-        #     if layer.haslayer(TCP):
-        #         sport, dport = layer[TCP].sport, layer[TCP].dport
-        #         if dst in network and src in network[dst]["relations"] and sport in network[dst]["relations"][src]:
-        #             continue
-        #         if dst in network[src]["relations"]:
-        #             if dport in network[src]["relations"][dst]:
-        #                 network[src]["relations"][dst][dport] += 1
-        #             else:
-        #                 network[src]["relations"][dst][dport] = 1
-        #         else:
-        #             network[src]["relations"][dst] = {dport: 1}
-        #     elif layer.haslayer(UDP):
-        #         sport, dport = layer[UDP].sport, layer[UDP].dport
-        #         if dst in network and src in network[dst]["relations"] and sport in network[dst]["relations"][src]:
-        #             continue
-        #         if dst in network[src]["relations"]:
-        #             if dport in network[src]["relations"][dst]:
-        #                 network[src]["relations"][dst][dport] += 1
-        #             else:
-        #                 network[src]["relations"][dst][dport] = 1
-        #         else:
-        #             network[src]["relations"][dst] = {dport: 1}
+        else:
+            continue
+
+        src, dst = layer.src, layer.dst
+
+        # Filtering sources and destination to not treat broadcast IP as a machine in the network
+        if src in ip_to_filter or ('255' in dst.split('.') or dst in ip_to_filter):
+            continue
+
+        # Create the machine if they don't already exist in our network
+        if src not in network:
+            network[src] = {"ip": src, "relations": {}}
+        if dst not in network:
+            network[dst] = {"ip": dst, "relations": {}}
+
+        # Get ports depending on layer, also filter out layers that are not supported by the program
+        if layer.haslayer(TCP):
+            sport, dport = layer[TCP].sport, layer[TCP].dport
+        elif layer.haslayer(UDP):
+            sport, dport = layer[UDP].sport, layer[UDP].dport
+        else:
+            continue
+
+        # Filter packets sent to an ephemeral port as they are sent as a response to a previous exchange
+        if (49152 <= dport <= 65535) or (dst in network
+                                         and src in network[dst]["relations"]
+                                         and sport in network[dst]["relations"][src]):
+            continue
+
+        # Add the packets to our recording of the network
+        if dst in network[src]["relations"]:
+            if dport in network[src]["relations"][dst]:
+                network[src]["relations"][dst][dport] += 1
+            else:
+                network[src]["relations"][dst][dport] = 1
+        else:
+            network[src]["relations"][dst] = {dport: 1}
     return network
 
 

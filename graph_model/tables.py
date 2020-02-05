@@ -5,6 +5,8 @@ from copy import deepcopy
 def machine_behavior(network):
     table = deepcopy(network)
     for src in table:
+        if not table[src]["relations"]:
+            continue
         fields = ['\"IP\\Port\"'] + ['\"' + e + '\"' for e in table[src]["relations"]]
         ports = set()
         for dst in table[src]["relations"]:
@@ -20,7 +22,8 @@ def machine_behavior(network):
             for port in ports:
                 row = {}
                 for dst in table[src]["relations"]:
-                    row['\"' + str(dst) + '\"'] = table[src]["relations"][dst][port] if port in table[src]["relations"][dst] else 0
+                    row['\"' + str(dst) + '\"'] = table[src]["relations"][dst][port] if port in table[src]["relations"][
+                        dst] else 0
                 if 0 >= sum(row.values()):
                     continue
                 row['\"IP\\Port\"'] = port
@@ -34,9 +37,12 @@ def flow_matrix(network):
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for src in table:
+            if not table[src]["relations"]:
+                continue
             row = {}
             for dst in table:
-                row['\"' + str(dst) + '\"'] = sum(table[src]["relations"][dst].values()) if dst in table[src]["relations"] else 0
+                row['\"' + str(dst) + '\"'] = sum(table[src]["relations"][dst].values()) if dst in table[src][
+                    "relations"] else 0
             if 0 >= sum(row.values()):
                 continue
             row['\"IP\\IP\"'] = src
@@ -48,6 +54,8 @@ def machine_use(network):
     fields = ['\"IP\\Port\"']
     ports = set()
     for src in table:
+        if not table[src]["relations"]:
+            continue
         table[src]["ports"] = {}
         total_pkt = 0
         for dst in table[src]["relations"]:
@@ -66,6 +74,8 @@ def machine_use(network):
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for src in table:
+            if not table[src]["relations"]:
+                continue
             row = {}
             for port in ports:
                 row["\"" + str(port) + "\""] = table[src]["ports"][port] if port in table[src]["ports"] else 0
@@ -82,6 +92,8 @@ def machine_role(network):
     for src in table:
         table[src]["ports"] = {}
     for src in table:
+        if not table[src]["relations"]:
+            continue
         for dst in table[src]["relations"]:
             if dst not in table:
                 continue
@@ -91,6 +103,8 @@ def machine_role(network):
                 else:
                     table[dst]["ports"][port] = table[src]["relations"][dst][port]
     for src in table:
+        if not table[src]["relations"]:
+            continue
         total_pkt = 0
         for port in table[src]["ports"]:
             ports.add(port)
@@ -103,6 +117,8 @@ def machine_role(network):
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for src in table:
+            if not table[src]["relations"]:
+                continue
             row = {}
             for port in ports:
                 row["\"" + str(port) + "\""] = table[src]["ports"][port] if port in table[src]["ports"] else 0
