@@ -7,7 +7,7 @@ def machine_behavior(network):
     for src in table:
         if not table[src]["relations"]:
             continue
-        fields = ['\"IP\\Port\"'] + ['\"' + e + '\"' for e in table[src]["relations"]]
+        fields = ['\"Source\\Port\"'] + ['\"' + e + '\"' for e in table[src]["relations"]]
         ports = set()
         for dst in table[src]["relations"]:
             ports.update([*table[src]["relations"][dst]])
@@ -32,7 +32,7 @@ def machine_behavior(network):
 
 def flow_matrix(network):
     table = deepcopy(network)
-    fields = ['\"IP\\IP\"'] + ['\"' + e + '\"' for e in table]
+    fields = ['\"Source\\Destination\"'] + ['\"' + e + '\"' for e in table]
     with open('csv/flow_matrix.csv', 'w') as f:
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
