@@ -10,7 +10,7 @@ from tables import machine_behavior, flow_matrix, machine_role, machine_use
 
 
 def pcap_to_json(pkt_file):
-    network, ip_to_filter = {}, ['0.0.0.0']
+    network, ip_to_filter = {}, ['0.0.0.0', '224.0.0.22']
     for p in pkt_file:
         # Filter packets not having an IP layer
         if p.haslayer(IP):
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument('pcap', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
-    # Generation of the JSON and the tables
+    # Generate the JSON and the tables
     network = pcap_to_json(rdpcap(args.pcap))
     machine_behavior(network)
     machine_role(network)

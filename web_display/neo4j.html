@@ -29,7 +29,8 @@
         </style>
 
         <style type="text/css" src="https://unpkg.com/vis-network/dist/vis-network.min.css"></style>
-        <script src="lib/neo4j_vis.js" type="module"></script>
+        <script src="https://cdn.neo4jlabs.com/neovis.js/v1.2.1/neovis.js"></script>
+<!--        <script src="lib/neo4j_vis.js" type="module"></script>-->
 
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"
                 integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous">
@@ -63,7 +64,7 @@
                     hierarchical_sort_method: "directed"
                 };
 
-                viz = new Neo4Vis.default(config);
+                viz = new NeoVis.default(config);
                 viz.render();
                 console.log(viz);
             }

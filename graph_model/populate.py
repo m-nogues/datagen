@@ -7,11 +7,12 @@ from model import Machine, create_machine
 
 
 def network_import(driver, network):
-    # Processing
+    # Creating the machines in Neo4J
     machines = {}
     for machine in network:
         machines[machine] = create_machine(driver, network[machine])
 
+    # Creating the relations in Neo4J
     for machine in network:
         for rel in network[machine]["relations"]:
             if rel not in machines:
@@ -24,7 +25,6 @@ def network_import(driver, network):
 
 
 if __name__ == "__main__":
-    # Argument parsing
     parser = argparse.ArgumentParser(
         description='Python script to graph a network model')
     parser.add_argument('-u', '--user', nargs='?', default='neo4j',
@@ -42,6 +42,7 @@ if __name__ == "__main__":
     driver = GraphDatabase.driver(
         args.address, auth=(args.user, args.password))
 
+    # Processing each JSON files passed as an argument
     for path in args.json:
         with open(path, 'r') as f:
             network = json.load(f)
