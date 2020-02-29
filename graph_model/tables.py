@@ -1,99 +1,83 @@
 import csv
 from copy import deepcopy
 
+import pandas as pd
+
+
+def write_rows(name, fields, rows):
+    df = pd.DataFrame(rows).set_index(fields[0])
+    df = df = df.assign(tmp=df.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T.assign(
+        tmp=df.T.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T
+    df.to_csv(name)
+
 
 def machine_behavior(network):
     table = deepcopy(network)
     for src in table:
-        if not table[src]["relations"]:
-            continue
-        fields = ['\"Source\\Port\"'] + ['\"' + e + '\"' for e in table[src]["relations"]]
+        fields = ['Source\\Destination port'] + [str(e) for e in table[src]["relations"]]
         ports = set()
+        rows = list()
         for dst in table[src]["relations"]:
             ports.update([*table[src]["relations"][dst]])
-            total_pkt = 0
-            for port in table[src]["relations"][dst]:
-                total_pkt += table[src]["relations"][dst][port]
-            for port in table[src]["relations"][dst]:
-                table[src]["relations"][dst][port] = (table[src]["relations"][dst][port] / total_pkt) * 100
-        with open('csv/machine_behavior-' + src + '.csv', 'w') as f:
-            writer = csv.DictWriter(f, fieldnames=fields)
-            writer.writeheader()
-            for port in ports:
-                row = {}
-                for dst in table[src]["relations"]:
-                    row['\"' + str(dst) + '\"'] = table[src]["relations"][dst][port] if port in table[src]["relations"][
-                        dst] else 0
-                if 0 >= sum(row.values()):
-                    continue
-                row['\"IP\\Port\"'] = port
-                writer.writerow(row)
+        for port in ports:
+            row = {'Source\\Destination port': str(port)}
+            for dst in table[src]["relations"]:
+                row[str(dst)] = table[src]["relations"][dst][port] if port in table[src]["relations"][
+                    dst] else 0
+            if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
+                continue
+            rows += [row]
+        write_rows(str('csv/machine_behavior-' + src + '.csv'), fields, rows)
 
 
 def flow_matrix(network):
     table = deepcopy(network)
-    fields = ['\"Source\\Destination\"'] + ['\"' + e + '\"' for e in table]
-    with open('csv/flow_matrix.csv', 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        for src in table:
-            if not table[src]["relations"]:
-                continue
-            row = {}
-            for dst in table:
-                row['\"' + str(dst) + '\"'] = sum(table[src]["relations"][dst].values()) if dst in table[src][
-                    "relations"] else 0
-            if 0 >= sum(row.values()):
-                continue
-            row['\"IP\\IP\"'] = src
-            writer.writerow(row)
+    fields = ['Source\\Destination'] + [str(e) for e in table]
+    rows = list()
+    for src in table:
+        row = {'Source\\Destination': str(src)}
+        for dst in table:
+            row[str(dst)] = sum(table[src]["relations"][dst].values()) if dst in table[src][
+                "relations"] else 0
+        if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
+            continue
+        rows += [row]
+    write_rows('csv/flow_matrix.csv', fields, rows)
 
 
 def machine_use(network):
     table = deepcopy(network)
-    fields = ['\"IP\\Port\"']
+    fields = ['Source\\Destination port']
     ports = set()
     for src in table:
-        if not table[src]["relations"]:
-            continue
         table[src]["ports"] = {}
-        total_pkt = 0
         for dst in table[src]["relations"]:
             for port in table[src]["relations"][dst]:
-                total_pkt += table[src]["relations"][dst][port]
                 if port in table[src]["ports"]:
                     table[src]["ports"][port] += table[src]["relations"][dst][port]
                 else:
                     table[src]["ports"][port] = table[src]["relations"][dst][port]
-        for port in table[src]["ports"]:
-            ports.add(port)
-            table[src]["ports"][port] = (table[src]["ports"][port] / total_pkt) * 100
+        ports.update(table[src]["ports"])
 
-    fields += list('\"' + str(e) + '\"' for e in ports)
-    with open('csv/machine_use.csv', 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        for src in table:
-            if not table[src]["relations"]:
-                continue
-            row = {}
-            for port in ports:
-                row["\"" + str(port) + "\""] = table[src]["ports"][port] if port in table[src]["ports"] else 0
-            if 0 >= sum(row.values()):
-                continue
-            row['\"IP\\Port\"'] = src
-            writer.writerow(row)
+    fields += list(str(e) for e in ports)
+    rows = list()
+    for src in table:
+        row = {'Source\\Destination port': str(src)}
+        for port in ports:
+            row[str(port)] = table[src]["ports"][port] if port in table[src]["ports"] else 0
+        if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
+            continue
+        rows += [row]
+    write_rows('csv/machine_use.csv', fields, rows)
 
 
 def machine_role(network):
     table = deepcopy(network)
-    fields = ['\"IP\\Port\"']
+    fields = ['Source\\Port']
     ports = set()
     for src in table:
         table[src]["ports"] = {}
     for src in table:
-        if not table[src]["relations"]:
-            continue
         for dst in table[src]["relations"]:
             if dst not in table:
                 continue
@@ -105,24 +89,15 @@ def machine_role(network):
     for src in table:
         if not table[src]["relations"]:
             continue
-        total_pkt = 0
-        for port in table[src]["ports"]:
-            ports.add(port)
-            total_pkt += table[src]["ports"][port]
-        for port in table[src]["ports"]:
-            table[src]["ports"][port] = (table[src]["ports"][port] / total_pkt) * 100
+        ports.update(table[src]["ports"])
 
-    fields += list('\"' + str(e) + '\"' for e in ports)
-    with open('csv/machine_role.csv', 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        for src in table:
-            if not table[src]["relations"]:
-                continue
-            row = {}
-            for port in ports:
-                row["\"" + str(port) + "\""] = table[src]["ports"][port] if port in table[src]["ports"] else 0
-            if 0 >= sum(row.values()):
-                continue
-            row['\"IP\\Port\"'] = src
-            writer.writerow(row)
+    fields += list(str(e) for e in ports)
+    rows = list()
+    for src in table:
+        row = {'Source\\Port': str(src)}
+        for port in ports:
+            row[str(port)] = table[src]["ports"][port] if port in table[src]["ports"] else 0
+        if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
+            continue
+        rows += [row]
+    write_rows('csv/machine_role.csv', fields, rows)

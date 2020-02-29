@@ -41,7 +41,7 @@ def pcap_to_json(pkt_file):
             continue
 
         # Filter packets sent to an ephemeral port as they are sent as a response to a previous exchange
-        if (49152 <= dport <= 65535) or (dst in network
+        if (32768 <= dport <= 65535) or (dst in network
                                          and src in network[dst]["relations"]
                                          and sport in network[dst]["relations"][src]):
             continue
@@ -54,6 +54,7 @@ def pcap_to_json(pkt_file):
                 network[src]["relations"][dst][dport] = 1
         else:
             network[src]["relations"][dst] = {dport: 1}
+    network = {k: v for k, v in network.items() if network[k]["relations"]}
     return network
 
 
@@ -73,16 +74,18 @@ if __name__ == "__main__":
     parser.add_argument('pcap', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
-    # Generate the JSON and the tables
+    # Generate the JSON
     network = pcap_to_json(rdpcap(args.pcap))
-    machine_behavior(network)
-    machine_role(network)
-    machine_use(network)
-    flow_matrix(network)
 
     # Write to JSON
     with open('result.json', 'w') as f:
         json.dump(network, f, indent='\t')
+
+    # Generate the tables
+    machine_behavior(network)
+    machine_role(network)
+    machine_use(network)
+    flow_matrix(network)
 
     # If not a test, put the results in Neo4j
     if not args.test:
