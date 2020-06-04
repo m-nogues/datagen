@@ -17,10 +17,10 @@ def network_import(driver, network):
         for rel in network[machine]["relations"]:
             if rel not in machines:
                 continue
-            for protocol in network[machine]["relations"][rel]:
+            for port in network[machine]["relations"][rel]:
                 machines[machine].create_connection(
-                    driver, machines[rel], protocol,
-                    network[machine]["relations"][rel][protocol]
+                    driver, machines[rel], port,
+                    network[machine]["relations"][rel][port]
                 )
 
 
