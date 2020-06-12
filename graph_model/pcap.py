@@ -8,9 +8,17 @@ from scapy.layers.inet import IP, TCP, UDP
 from populate import network_import
 from tables import machine_behavior, flow_matrix, machine_role, machine_use
 
+# The list of IP address to filter from the PCAPs
+ip_to_filter = ['0.0.0.0', '224.0.0.22']
+
 
 def pcap_to_json(pkt_file):
-    network, ip_to_filter = {}, ['0.0.0.0', '224.0.0.22']
+    """
+    Analyses the PCAP file and creates the JSON description of the network it represents
+    :param pkt_file: the PCAP file
+    :return: the network as a python dictionary / JSON
+    """
+    network = {}
     for p in pkt_file:
         # Filter packets not having an IP layer
         if p.haslayer(IP):
@@ -26,13 +34,13 @@ def pcap_to_json(pkt_file):
         if src in ip_to_filter or ('255' in dst.split('.') or dst in ip_to_filter):
             continue
 
-        # Create the machine if they don't already exist in our network
+        # Creates the machine if they don't already exist in our network
         if src not in network:
             network[src] = {"ip": src, "relations": {}}
         if dst not in network:
             network[dst] = {"ip": dst, "relations": {}}
 
-        # Get ports depending on layer, also filter out layers that are not supported by the program
+        # Gets ports depending on layer, also filter out layers that are not supported by the program
         if layer.haslayer(TCP):
             sport, dport = layer[TCP].sport, layer[TCP].dport
         elif layer.haslayer(UDP):
@@ -40,7 +48,7 @@ def pcap_to_json(pkt_file):
         else:
             continue
 
-        # Filter packets sent to an ephemeral port as they are sent as a response to a previous exchange
+        # Filters packets sent to an ephemeral port as they are sent as a response to a previous exchange
         if (32768 <= dport <= 65535) or (dst in network
                                          and src in network[dst]["relations"]
                                          and sport in network[dst]["relations"][src]):
@@ -74,14 +82,14 @@ if __name__ == "__main__":
     parser.add_argument('pcap', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
-    # Generate the JSON
+    # Generates the JSON
     network = pcap_to_json(rdpcap(args.pcap))
 
-    # Write to JSON
+    # Writes to JSON
     with open('result.json', 'w') as f:
         json.dump(network, f, indent='\t')
 
-    # Generate the tables
+    # Generates the tables
     machine_behavior(network)
     machine_role(network)
     machine_use(network)

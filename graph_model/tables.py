@@ -5,6 +5,12 @@ import pandas as pd
 
 
 def write_rows(name, fields, rows):
+    """
+    Writes the rows in a CSV file named with name. The first line is the fields.
+    :param name: the name of the file
+    :param fields: the fields of the CSV
+    :param rows: the rows of the CSV
+    """
     df = pd.DataFrame(rows).set_index(fields[0])
     df = df = df.assign(tmp=df.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T.assign(
         tmp=df.T.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T
@@ -12,6 +18,10 @@ def write_rows(name, fields, rows):
 
 
 def machine_behavior(network):
+    """
+    Creates the tables describing the behavior of the machines in the network
+    :param network: the description of the network
+    """
     table = deepcopy(network)
     for src in table:
         fields = ['Source\\Destination port'] + [str(e) for e in table[src]["relations"]]
@@ -31,6 +41,10 @@ def machine_behavior(network):
 
 
 def flow_matrix(network):
+    """
+    Creates the flow matrix corresponding to the network
+    :param network: the description of the network
+    """
     table = deepcopy(network)
     fields = ['Source\\Destination'] + [str(e) for e in table]
     rows = list()
@@ -46,6 +60,10 @@ def flow_matrix(network):
 
 
 def machine_use(network):
+    """
+    Creates the table describing the use of the machines in the network
+    :param network: the description of the network
+    """
     table = deepcopy(network)
     fields = ['Source\\Destination port']
     ports = set()
@@ -72,6 +90,10 @@ def machine_use(network):
 
 
 def machine_role(network):
+    """
+    Creates the table describing the role of the machines in the network
+    :param network: the description of the network
+    """
     table = deepcopy(network)
     fields = ['Source\\Port']
     ports = set()
