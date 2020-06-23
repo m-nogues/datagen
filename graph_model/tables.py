@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 
 import pandas as pd
@@ -10,15 +11,20 @@ def write_rows(name, fields, rows):
     :param fields: the fields of the CSV
     :param rows: the rows of the CSV
     """
+    dirs = os.path.dirname(name)
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
+
     df = pd.DataFrame(rows).set_index(fields[0])
     df = df = df.assign(tmp=df.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T.assign(
         tmp=df.T.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T
     df.to_csv(name)
 
 
-def machine_behavior(network):
+def machine_behavior(network, name):
     """
     Creates the tables describing the behavior of the machines in the network
+    :param name: the name of the pcap file tested
     :param network: the description of the network
     """
     table = deepcopy(network)
@@ -36,12 +42,13 @@ def machine_behavior(network):
             if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
                 continue
             rows += [row]
-        write_rows(str('csv/machine_behavior-' + src + '.csv'), fields, rows)
+        write_rows(str(name + '/csv/machine_behavior-' + src + '.csv'), fields, rows)
 
 
-def flow_matrix(network):
+def flow_matrix(network, name):
     """
     Creates the flow matrix corresponding to the network
+    :param name: the name of the pcap file tested
     :param network: the description of the network
     """
     table = deepcopy(network)
@@ -55,12 +62,13 @@ def flow_matrix(network):
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
-    write_rows('csv/flow_matrix.csv', fields, rows)
+    write_rows(name + '/csv/flow_matrix.csv', fields, rows)
 
 
-def machine_use(network):
+def machine_use(network, name):
     """
     Creates the table describing the use of the machines in the network
+    :param name: the name of the pcap file tested
     :param network: the description of the network
     """
     table = deepcopy(network)
@@ -85,12 +93,13 @@ def machine_use(network):
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
-    write_rows('csv/machine_use.csv', fields, rows)
+    write_rows(name + '/csv/machine_use.csv', fields, rows)
 
 
-def machine_role(network):
+def machine_role(network, name):
     """
     Creates the table describing the role of the machines in the network
+    :param name: the name of the pcap file tested
     :param network: the description of the network
     """
     table = deepcopy(network)
@@ -121,4 +130,4 @@ def machine_role(network):
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
-    write_rows('csv/machine_role.csv', fields, rows)
+    write_rows(name + '/csv/machine_role.csv', fields, rows)

@@ -86,14 +86,17 @@ if __name__ == "__main__":
     network = pcap_to_json(rdpcap(args.pcap))
 
     # Writes to JSON
-    with open('result.json', 'w') as f:
+    name = '.'.join(os.path.basename(args.pcap).split(".")[0:-1])
+    if not os.path.exists(name):
+        os.makedirs(name)
+    with open(name + '/result.json', 'w') as f:
         json.dump(network, f, indent='\t')
 
     # Generates the tables
-    machine_behavior(network)
-    machine_role(network)
-    machine_use(network)
-    flow_matrix(network)
+    machine_behavior(network, name)
+    machine_role(network, name)
+    machine_use(network, name)
+    flow_matrix(network, name)
 
     # If not a test, put the results in Neo4j
     if not args.test:
