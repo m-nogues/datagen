@@ -1,7 +1,3 @@
-# driver = GraphDatabase.driver(
-#    'bolt://localhost:7687', auth=('neo4j', 'iN2WuicrfZZ3s7d'))
-
-
 def create_machine(driver, machine):
     """
     Creates the machine as node in the graph

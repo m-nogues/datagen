@@ -11,13 +11,20 @@ def write_rows(name, fields, rows):
     :param fields: the fields of the CSV
     :param rows: the rows of the CSV
     """
+
+    # Creates missing directories in the name of the file
     dirs = os.path.dirname(name)
     if not os.path.exists(dirs):
         os.makedirs(dirs)
 
+    # Adds the fields names
     df = pd.DataFrame(rows).set_index(fields[0])
-    df = df = df.assign(tmp=df.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T.assign(
+
+    # Sorts the table in descending order for columns and rows
+    df = df.assign(tmp=df.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T.assign(
         tmp=df.T.sum(axis=1)).sort_values('tmp', ascending=False).drop('tmp', 1).T
+
+    # Writes the sorted table to the CSV file
     df.to_csv(name)
 
 

@@ -78,17 +78,19 @@ if __name__ == "__main__":
                         default='bolt://localhost:7687',
                         help='The url to connect to the server')
     parser.add_argument('-t', '--test', action='store_true',
-                        help='allows to run the script to just generate the json files')
+                        help='allows to run the script to just generate the json and csv files')
     parser.add_argument('pcap', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
     # Generates the JSON
     network = pcap_to_json(rdpcap(args.pcap))
 
-    # Writes to JSON
+    # Creates a directory named the same as the PCAP file
     name = '.'.join(os.path.basename(args.pcap).split(".")[0:-1])
     if not os.path.exists(name):
         os.makedirs(name)
+
+    # Writes to JSON
     with open(name + '/result.json', 'w') as f:
         json.dump(network, f, indent='\t')
 
