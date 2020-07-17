@@ -6,7 +6,7 @@ from scapy.all import *
 from scapy.layers.inet import IP, TCP, UDP
 
 from populate import network_import
-from tables import machine_behavior, flow_matrix, machine_role, machine_use
+from tables import flow_matrix, machine_behavior, machine_role, machine_use
 
 # The list of IP address to filter from the PCAPs
 ip_to_filter = ['0.0.0.0', '224.0.0.22']

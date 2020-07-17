@@ -1,7 +1,7 @@
 import time
+from random import *
 
 from selenium import webdriver
-from random import *
 
 for i in range(200):
     chrome_options = webdriver.ChromeOptions()

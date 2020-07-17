@@ -2,9 +2,11 @@
   <dictionary name="mael">
     <words>
       <w>dport</w>
+      <w>dtype</w>
       <w>haslayer</w>
       <w>noto</w>
       <w>pcap</w>
+      <w>unsw</w>
       <w>visjs</w>
     </words>
   </dictionary>
