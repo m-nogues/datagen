@@ -3,7 +3,7 @@ import json
 
 from neo4j import GraphDatabase
 
-from model.model import create_machine
+from model import create_machine
 
 
 def network_import(driver, network):

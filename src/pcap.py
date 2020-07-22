@@ -5,11 +5,11 @@ from neo4j import GraphDatabase
 from scapy.all import *
 from scapy.layers.inet import IP, TCP, UDP
 
-from model.populate import network_import
-from model.tables import flow_matrix, machine_behavior, machine_role, machine_use
+from populate import network_import
+from tables import flow_matrix, machine_behavior, machine_role, machine_use
 
 # The list of IP address to filter from the PCAPs
-ip_to_filter = ['0.0.0.0', '224.0.0.22']
+ip_to_filter = ['0.0.0.0', '224.0.0.22', '224.0.0.252']
 
 
 def pcap_to_json(pkt_file):
@@ -52,6 +52,12 @@ def pcap_to_json(pkt_file):
         if (32768 <= dport <= 65535) or (dst in network
                                          and src in network[dst]["relations"]
                                          and sport in network[dst]["relations"][src]):
+            if src not in network[dst]["relations"]:
+                network[dst]["relations"][src] = {}
+            if "response" in network[dst]["relations"][src]:
+                network[dst]["relations"][src]["response"] += 1
+            else:
+                network[dst]["relations"][src]["response"] = 1
             continue
 
         # Add the packets to our recording of the network

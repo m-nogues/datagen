@@ -36,15 +36,16 @@ def machine_behavior(network, name):
     """
     table = deepcopy(network)
     for src in table:
-        fields = ['Source\\Destination port'] + [str(e) for e in table[src]["relations"]]
+        fields = ['Source\\Destination port'] + [str(e) for e in table[src]['relations']]
         ports = set()
         rows = list()
-        for dst in table[src]["relations"]:
-            ports.update([*table[src]["relations"][dst]])
+        for dst in table[src]['relations']:
+            table[src]['relations'][dst].pop('response', None)
+            ports.update([*table[src]['relations'][dst]])
         for port in ports:
             row = {'Source\\Destination port': str(port)}
-            for dst in table[src]["relations"]:
-                row[str(dst)] = table[src]["relations"][dst][port] if port in table[src]["relations"][
+            for dst in table[src]['relations']:
+                row[str(dst)] = table[src]['relations'][dst][port] if port in table[src]['relations'][
                     dst] else 0
             if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
                 continue
@@ -64,8 +65,11 @@ def flow_matrix(network, name):
     for src in table:
         row = {'Source\\Destination': str(src)}
         for dst in table:
-            row[str(dst)] = sum(table[src]["relations"][dst].values()) if dst in table[src][
-                "relations"] else 0
+            if dst in table[src]['relations']:
+                row[str(dst)] = sum(table[src]['relations'][dst].values()) - table[src]['relations'][dst].pop(
+                    'response', 0)
+            else:
+                row[str(dst)] = 0
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
@@ -82,21 +86,22 @@ def machine_use(network, name):
     fields = ['Source\\Destination port']
     ports = set()
     for src in table:
-        table[src]["ports"] = {}
-        for dst in table[src]["relations"]:
-            for port in table[src]["relations"][dst]:
-                if port in table[src]["ports"]:
-                    table[src]["ports"][port] += table[src]["relations"][dst][port]
+        table[src]['ports'] = {}
+        for dst in table[src]['relations']:
+            table[src]['relations'][dst].pop('response', None)
+            for port in table[src]['relations'][dst]:
+                if port in table[src]['ports']:
+                    table[src]['ports'][port] += table[src]['relations'][dst][port]
                 else:
-                    table[src]["ports"][port] = table[src]["relations"][dst][port]
-        ports.update(table[src]["ports"])
+                    table[src]['ports'][port] = table[src]['relations'][dst][port]
+        ports.update(table[src]['ports'])
 
     fields += list(str(e) for e in ports)
     rows = list()
     for src in table:
         row = {'Source\\Destination port': str(src)}
         for port in ports:
-            row[str(port)] = table[src]["ports"][port] if port in table[src]["ports"] else 0
+            row[str(port)] = table[src]['ports'][port] if port in table[src]['ports'] else 0
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
@@ -113,27 +118,28 @@ def machine_role(network, name):
     fields = ['Source\\Port']
     ports = set()
     for src in table:
-        table[src]["ports"] = {}
+        table[src]['ports'] = {}
     for src in table:
-        for dst in table[src]["relations"]:
+        for dst in table[src]['relations']:
             if dst not in table:
                 continue
-            for port in table[src]["relations"][dst]:
-                if port in table[dst]["ports"]:
-                    table[dst]["ports"][port] += table[src]["relations"][dst][port]
+            table[src]['relations'][dst].pop('response', None)
+            for port in table[src]['relations'][dst]:
+                if port in table[dst]['ports']:
+                    table[dst]['ports'][port] += table[src]['relations'][dst][port]
                 else:
-                    table[dst]["ports"][port] = table[src]["relations"][dst][port]
+                    table[dst]['ports'][port] = table[src]['relations'][dst][port]
     for src in table:
-        if not table[src]["relations"]:
+        if not table[src]['relations']:
             continue
-        ports.update(table[src]["ports"])
+        ports.update(table[src]['ports'])
 
     fields += list(str(e) for e in ports)
     rows = list()
     for src in table:
         row = {'Source\\Port': str(src)}
         for port in ports:
-            row[str(port)] = table[src]["ports"][port] if port in table[src]["ports"] else 0
+            row[str(port)] = table[src]['ports'][port] if port in table[src]['ports'] else 0
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
