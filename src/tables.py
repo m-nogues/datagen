@@ -144,3 +144,25 @@ def machine_role(network, name):
             continue
         rows += [row]
     write_rows(name + '/csv/machine_role.csv', fields, rows)
+
+
+def response_avg(network, name):
+    """
+    Calculates the average response rate in the network
+    :param network: the description of the network
+    :param name: the name of the pcap file tested
+    """
+    table = deepcopy(network)
+    response = 0
+    total_packets = 0
+    for src in table:
+        for dst in table[src]['relations']:
+            response += table[src]['relations'][dst].pop('response')
+            for port in table[src]['relations'][dst]:
+                total_packets += table[src]['relations'][dst][port]
+
+    response_avg = response / total_packets
+
+    fields = list()
+    rows = list()
+    write_rows(name + 'csv/response_avg.csv', fields, rows)
