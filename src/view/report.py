@@ -1,6 +1,9 @@
 import argparse
+import os
 
 from PyPDF2 import PdfFileMerger
+
+from view.csv2tab import csv2bar
 
 
 def merge_pdfs(pdfs):
@@ -13,8 +16,14 @@ def merge_pdfs(pdfs):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Python script to merge PDFs into one file')
-    parser.add_argument('pdfs', nargs='+', help='PDFs to merge')
+    parser = argparse.ArgumentParser(description='Python script to create a report from different CSV file')
+    parser.add_argument('csvs', nargs='+', help='CSVs to analyse')
     args = parser.parse_args()
 
-    merge_pdfs(args.pdfs)
+    csvs = args.csvs
+
+    for csv in csvs:
+        csv2bar(csv)
+
+    pdfs = [f for f in os.listdir(os.path.dirname(csvs[0])) if os.path.isfile(f) and f.endswith('.pdf')]
+    merge_pdfs(pdfs)

@@ -24,7 +24,7 @@ def csv2bar(csv):
 
     # plt.savefig(basedir + file + '.pgf')
     plt.savefig(basedir + file + '.pdf')
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
