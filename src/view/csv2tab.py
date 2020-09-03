@@ -11,20 +11,20 @@ import pandas as pd
 def csv2bar(csv):
     df = pd.read_csv(csv)
     file = '.'.join(os.path.basename(csv).split(".")[0:-1])
-    name = df.columns[0]
-    xy = name.split('\\')
-    df.plot.bar(x=name)
+    basedir = '/'.join(os.path.dirname(csv).split('/')[0:-1]) + '/'
+    x_axis = df.columns[0]
+    xy = x_axis.split('\\')
+    df.plot.bar(x=x_axis)
 
-    plt.title(file.replace('_', ' '))
+    plt.title(file.replace('_', ' ').capitalize())
     plt.xlabel(xy[0])
     plt.ylabel(xy[1])
 
     plt.tight_layout()
 
-    plt.savefig(file + '.pdf')
+    # plt.savefig(basedir + file + '.pgf')
+    plt.savefig(basedir + file + '.pdf')
     plt.show()
-
-    # plt.savefig(file + '.pgf')
 
 
 if __name__ == "__main__":

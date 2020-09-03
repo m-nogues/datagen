@@ -68,3 +68,4 @@ target/
 vms/
 pcaps/
 *.json
+*.pdf
