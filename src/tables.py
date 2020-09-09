@@ -151,8 +151,9 @@ def machine_role(network, name):
 
 def extract(network):
     """
-    Calculates the average response rate in the network
+    Extracts different useful information for the indicators in one swipe of the JSON
     :param network: the description of the network
+    :return: the useful extracted information
     """
     table = deepcopy(network)
     response = 0
@@ -171,17 +172,32 @@ def extract(network):
 
 
 def first_quartile(lives):
+    """
+    Calculates the percentage of machines from the network that are in the first quartile of life durations
+    :param lives: the list of life durations
+    :return: the percentage of machines in the first quartile
+    """
     quartile = np.percentile(lives, 25)
     return len([i for i in lives if i <= quartile]) / len(lives)
 
 
 def ip_life(network):
+    """
+    Performs the calculation for the indicators on life durations for the machines in the given network
+    :param network: the description of the network
+    :return: the dictionary containing the variance and the percentage of machines in the first quartile
+    """
     lives = [v['end'] - v['start'] for _, v in network.items()]
     return {'1st_quartile': first_quartile(lives), 'variance': str(datetime.fromtimestamp(float(np.var(lives))) -
                                                                    datetime.fromtimestamp(0))}
 
 
 def indicators(pcap, name):
+    """
+    Generates and writes the JSON containing indicators on the profile and quality of the analysed PCAP
+    :param pcap: the description of the analysed PCAP
+    :param name: the name of the pcap file tested
+    """
     resp, total_packets, ports = extract(pcap['network'])
     indi = {'response_avg': resp, 'ip_life': ip_life(deepcopy(pcap['network'])), 'ips': len(pcap['network']),
             'exchanges': total_packets, 'ports': ports}

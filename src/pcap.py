@@ -20,7 +20,9 @@ def pcap_to_json(pkt_file):
     """
     pcap = {'network': {}}
     for p in pkt_file:
+        # Define the end of the PCAP to the time of the packet until the last one
         pcap['end'] = p.time
+        # Define the start of the PCAP to the time of the packet only for the first one
         if 'start' not in pcap:
             pcap['start'] = p.time
         # Filter packets not having an IP layer
