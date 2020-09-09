@@ -6,7 +6,7 @@ from scapy.all import *
 from scapy.layers.inet import IP, TCP, UDP
 
 from populate import network_import
-from tables import flow_matrix, machine_behavior, machine_role, machine_use
+from tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
 
 # The list of IP address to filter from the PCAPs
 ip_to_filter = ['0.0.0.0', '224.0.0.22', '224.0.0.252']
@@ -97,23 +97,28 @@ if __name__ == "__main__":
     parser.add_argument('pcap', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
-    # Generates the JSON
-    pcap = pcap_to_json(rdpcap(args.pcap))
-
     # Creates a directory named the same as the PCAP file
     name = '.'.join(os.path.basename(args.pcap).split(".")[0:-1])
     if not os.path.exists(name):
         os.makedirs(name)
 
-    # Writes to JSON
-    with open(name + '/result.json', 'w') as f:
-        json.dump(pcap, f, indent='\t')
+    # Generates the JSON
+    if not os.path.exists(name + '/result.json'):
+        pcap = pcap_to_json(rdpcap(args.pcap))
+
+        # Writes to JSON
+        with open(name + '/result.json', 'w') as f:
+            json.dump(pcap, f, indent='\t')
+    else:
+        with open(name + '/result.json', 'r') as f:
+            pcap = json.load(f)
 
     # Generates the tables
     machine_behavior(pcap['network'], name)
     machine_role(pcap['network'], name)
     machine_use(pcap['network'], name)
     flow_matrix(pcap['network'], name)
+    indicators(pcap, name)
 
     # If not a test, put the results in Neo4j
     if not args.test:

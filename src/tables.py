@@ -117,6 +117,7 @@ def machine_role(network, name):
     :param network: the description of the network
     """
     table = deepcopy(network)
+
     fields = ['Source\\Port']
     ports = set()
     for src in table:
@@ -158,7 +159,8 @@ def response_avg(network):
     total_packets = 0
     for src in table:
         for dst in table[src]['relations']:
-            response += table[src]['relations'][dst].pop('response')
+            if response in table[src]['relations'][dst]:
+                response += table[src]['relations'][dst].pop('response')
             for port in table[src]['relations'][dst]:
                 total_packets += table[src]['relations'][dst][port]
 
@@ -167,16 +169,17 @@ def response_avg(network):
 
 def first_quartile(lives):
     quartile = np.percentile(lives, 25)
-    return len([i for i in lives if i <= quartile]) + 1
+    return (len([i for i in lives if i <= quartile]) + 1) / len(lives)
 
 
 def ip_life(network):
-    lives = [end - start for start, end, _ in network]
-    return {'1st_quartile': first_quartile(lives), 'variance': datetime.timestamp(np.var(lives))}
+    lives = [v['end'] - v['start'] for _, v in network.items()]
+    return {'1st_quartile': first_quartile(lives), 'variance': str(datetime.fromtimestamp(float(np.var(lives))) -
+                                                                   datetime.fromtimestamp(0))}
 
 
 def indicators(pcap, name):
-    indi = {'response_avg': response_avg(deepcopy(pcap['network'])), 'ip_life': ip_life(deepcopy(pcap['network']))}
+    indi = {'response_avg': response_avg(pcap['network']), 'ip_life': ip_life(deepcopy(pcap['network']))}
 
     # Writes to JSON
     with open(name + '/indicators.json', 'w') as f:
