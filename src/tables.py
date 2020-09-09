@@ -149,7 +149,7 @@ def machine_role(network, name):
     write_rows(name + '/csv/machine_role.csv', fields, rows)
 
 
-def response_avg(network):
+def extract(network):
     """
     Calculates the average response rate in the network
     :param network: the description of the network
@@ -157,19 +157,22 @@ def response_avg(network):
     table = deepcopy(network)
     response = 0
     total_packets = 0
+    ports = set()
     for src in table:
         for dst in table[src]['relations']:
             if 'response' in table[src]['relations'][dst]:
                 response += table[src]['relations'][dst].pop('response')
             for port in table[src]['relations'][dst]:
+                if port not in ports:
+                    ports.add(port)
                 total_packets += table[src]['relations'][dst][port]
 
-    return response / total_packets
+    return response / total_packets, total_packets, ports
 
 
 def first_quartile(lives):
     quartile = np.percentile(lives, 25)
-    return (len([i for i in lives if i <= quartile]) + 1) / len(lives)
+    return len([i for i in lives if i <= quartile]) / len(lives)
 
 
 def ip_life(network):
@@ -179,7 +182,9 @@ def ip_life(network):
 
 
 def indicators(pcap, name):
-    indi = {'response_avg': response_avg(pcap['network']), 'ip_life': ip_life(deepcopy(pcap['network']))}
+    resp, total_packets, ports = extract(pcap['network'])
+    indi = {'response_avg': resp, 'ip_life': ip_life(deepcopy(pcap['network'])), 'ips': len(pcap['network']),
+            'exchanges': total_packets, 'ports': ports}
 
     # Writes to JSON
     with open(name + '/indicators.json', 'w') as f:
