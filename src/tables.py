@@ -1,8 +1,9 @@
+import json
 import os
 from copy import deepcopy
 
 import pandas as pd
-
+import numpy as np
 
 def write_rows(name, fields, rows):
     """
@@ -146,11 +147,10 @@ def machine_role(network, name):
     write_rows(name + '/csv/machine_role.csv', fields, rows)
 
 
-def response_avg(network, name):
+def response_avg(network):
     """
     Calculates the average response rate in the network
     :param network: the description of the network
-    :param name: the name of the pcap file tested
     """
     table = deepcopy(network)
     response = 0
@@ -161,8 +161,22 @@ def response_avg(network, name):
             for port in table[src]['relations'][dst]:
                 total_packets += table[src]['relations'][dst][port]
 
-    response_avg = response / total_packets
+    return response / total_packets
 
-    fields = list()
-    rows = list()
-    write_rows(name + 'csv/response_avg.csv', fields, rows)
+
+def first_quartile(lives):
+    quartile = np.percentile(lives, 25)
+    return len([i for i in lives if i <= quartile]) + 1
+
+
+def ip_life(network):
+    lives = [end - start for start, end, _ in network]
+    return {'1st_quartile': first_quartile(lives), 'variance': np.var(lives)}
+
+
+def indicators(pcap, name):
+    indi = {'response_avg': response_avg(deepcopy(pcap['network'])), 'ip_life': ip_life(deepcopy(pcap['network']))}
+
+    # Writes to JSON
+    with open(name + '/indicators.json', 'w') as f:
+        json.dump(indi, f, indent='\t')

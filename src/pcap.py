@@ -18,8 +18,11 @@ def pcap_to_json(pkt_file):
     :param pkt_file: the PCAP file
     :return: the network as a python dictionary / JSON
     """
-    network = {}
+    pcap = {'network': {}}
     for p in pkt_file:
+        pcap['end'] = p.time
+        if 'start' not in pcap:
+            pcap['start'] = p.time
         # Filter packets not having an IP layer
         if p.haslayer(IP):
             layer = p[IP]
@@ -34,12 +37,6 @@ def pcap_to_json(pkt_file):
         if src in ip_to_filter or ('255' in dst.split('.') or dst in ip_to_filter):
             continue
 
-        # Creates the machine if they don't already exist in our network
-        if src not in network:
-            network[src] = {"ip": src, "relations": {}}
-        if dst not in network:
-            network[dst] = {"ip": dst, "relations": {}}
-
         # Gets ports depending on layer, also filter out layers that are not supported by the program
         if layer.haslayer(TCP):
             sport, dport = layer[TCP].sport, layer[TCP].dport
@@ -48,28 +45,40 @@ def pcap_to_json(pkt_file):
         else:
             continue
 
-        # Filters packets sent to an ephemeral port as they are sent as a response to a previous exchange
-        if (32768 <= dport <= 65535) or (dst in network
-                                         and src in network[dst]["relations"]
-                                         and sport in network[dst]["relations"][src]):
-            if src not in network[dst]["relations"]:
-                network[dst]["relations"][src] = {}
-            if "response" in network[dst]["relations"][src]:
-                network[dst]["relations"][src]["response"] += 1
+        # Creates the machine if they don't already exist in our network
+        if src not in pcap['network']:
+            pcap['network'][src] = {"ip": src, "relations": {}, 'start': p.time, 'end': p.time}
+        if dst not in pcap['network']:
+            pcap['network'][dst] = {"ip": dst, "relations": {}, 'start': p.time, 'end': p.time}
+
+        # Sets the end of life of both source and destination machine to the time of arrival of the current packet
+        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = p.time
+
+        # Flag packets sent to an ephemeral port as response to a previous exchange
+        if (32768 <= dport <= 65535) or (dst in pcap['network']
+                                         and src in pcap['network'][dst]["relations"]
+                                         and sport in pcap['network'][dst]["relations"][src]):
+            if src not in pcap['network'][dst]["relations"]:
+                pcap['network'][dst]["relations"][src] = {}
+            if "response" in pcap['network'][dst]["relations"][src]:
+                pcap['network'][dst]["relations"][src]["response"] += 1
             else:
-                network[dst]["relations"][src]["response"] = 1
+                pcap['network'][dst]["relations"][src]["response"] = 1
             continue
 
         # Add the packets to our recording of the network
-        if dst in network[src]["relations"]:
-            if dport in network[src]["relations"][dst]:
-                network[src]["relations"][dst][dport] += 1
+        if dst in pcap['network'][src]["relations"]:
+            if dport in pcap['network'][src]["relations"][dst]:
+                pcap['network'][src]["relations"][dst][dport] += 1
             else:
-                network[src]["relations"][dst][dport] = 1
+                pcap['network'][src]["relations"][dst][dport] = 1
         else:
-            network[src]["relations"][dst] = {dport: 1}
-    network = {k: v for k, v in network.items() if network[k]["relations"]}
-    return network
+            pcap['network'][src]["relations"][dst] = {dport: 1}
+
+    # Filter out the machines with no relations in our network
+    pcap['network'] = {k: v for k, v in pcap['network'].items() if pcap['network'][k]["relations"]}
+
+    return pcap
 
 
 if __name__ == "__main__":
@@ -89,7 +98,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Generates the JSON
-    network = pcap_to_json(rdpcap(args.pcap))
+    pcap = pcap_to_json(rdpcap(args.pcap))
 
     # Creates a directory named the same as the PCAP file
     name = '.'.join(os.path.basename(args.pcap).split(".")[0:-1])
@@ -98,18 +107,18 @@ if __name__ == "__main__":
 
     # Writes to JSON
     with open(name + '/result.json', 'w') as f:
-        json.dump(network, f, indent='\t')
+        json.dump(pcap, f, indent='\t')
 
     # Generates the tables
-    machine_behavior(network, name)
-    machine_role(network, name)
-    machine_use(network, name)
-    flow_matrix(network, name)
+    machine_behavior(pcap['network'], name)
+    machine_role(pcap['network'], name)
+    machine_use(pcap['network'], name)
+    flow_matrix(pcap['network'], name)
 
     # If not a test, put the results in Neo4j
     if not args.test:
         # Sending to Neo4j
         driver = GraphDatabase.driver(
             args.address, auth=(args.user, args.password))
-        network_import(driver, network)
+        network_import(driver, pcap['network'])
         driver.close()
