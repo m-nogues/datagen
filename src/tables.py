@@ -159,7 +159,7 @@ def response_avg(network):
     total_packets = 0
     for src in table:
         for dst in table[src]['relations']:
-            if response in table[src]['relations'][dst]:
+            if 'response' in table[src]['relations'][dst]:
                 response += table[src]['relations'][dst].pop('response')
             for port in table[src]['relations'][dst]:
                 total_packets += table[src]['relations'][dst][port]
