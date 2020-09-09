@@ -1,6 +1,7 @@
 import json
 import os
 from copy import deepcopy
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -171,7 +172,7 @@ def first_quartile(lives):
 
 def ip_life(network):
     lives = [end - start for start, end, _ in network]
-    return {'1st_quartile': first_quartile(lives), 'variance': np.var(lives)}
+    return {'1st_quartile': first_quartile(lives), 'variance': datetime.timestamp(np.var(lives))}
 
 
 def indicators(pcap, name):
