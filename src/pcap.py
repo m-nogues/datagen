@@ -21,10 +21,10 @@ def pcap_to_json(pkt_file):
     pcap = {'network': {}}
     for p in pkt_file:
         # Define the end of the PCAP to the time of the packet until the last one
-        pcap['end'] = p.time
+        pcap['end'] = float(p.time)
         # Define the start of the PCAP to the time of the packet only for the first one
         if 'start' not in pcap:
-            pcap['start'] = p.time
+            pcap['start'] = float(p.time)
         # Filter packets not having an IP layer
         if p.haslayer(IP):
             layer = p[IP]
@@ -49,12 +49,12 @@ def pcap_to_json(pkt_file):
 
         # Creates the machine if they don't already exist in our network
         if src not in pcap['network']:
-            pcap['network'][src] = {"ip": src, "relations": {}, 'start': p.time, 'end': p.time}
+            pcap['network'][src] = {"ip": src, "relations": {}, 'start': float(p.time), 'end': float(p.time)}
         if dst not in pcap['network']:
-            pcap['network'][dst] = {"ip": dst, "relations": {}, 'start': p.time, 'end': p.time}
+            pcap['network'][dst] = {"ip": dst, "relations": {}, 'start': float(p.time), 'end': float(p.time)}
 
         # Sets the end of life of both source and destination machine to the time of arrival of the current packet
-        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = p.time
+        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = float(p.time)
 
         # Flag packets sent to an ephemeral port as response to a previous exchange
         if (32768 <= dport <= 65535) or (dst in pcap['network']
