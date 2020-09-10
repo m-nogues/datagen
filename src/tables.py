@@ -164,11 +164,10 @@ def extract(network):
             if 'response' in table[src]['relations'][dst]:
                 response += table[src]['relations'][dst].pop('response')
             for port in table[src]['relations'][dst]:
-                if port not in ports:
-                    ports.add(port)
+                ports.add(port)
                 total_packets += table[src]['relations'][dst][port]
 
-    return response / total_packets, total_packets, ports
+    return response / total_packets, total_packets, list(ports)
 
 
 def first_quartile(lives):
