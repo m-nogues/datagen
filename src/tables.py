@@ -6,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+
 def write_rows(name, fields, rows):
     """
     Writes the rows in a CSV file named with name. The first line is the fields.
@@ -199,7 +200,9 @@ def indicators(pcap, name):
     """
     resp, total_packets, ports = extract(pcap['network'])
     indi = {'response_avg': resp, 'ip_life': ip_life(deepcopy(pcap['network'])), 'ips': len(pcap['network']),
-            'exchanges': total_packets, 'ports': ports}
+            'exchanges': total_packets, 'ports': ports,
+            'total_duration': str(datetime.fromtimestamp(float(pcap['end'] - pcap['start'])) -
+                                  datetime.fromtimestamp(0))}
 
     # Writes to JSON
     with open(name + '/indicators.json', 'w') as f:
