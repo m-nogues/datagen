@@ -83,30 +83,15 @@ def pcap_to_json(pkt_file):
     return pcap
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Python script to generate a json representation of a '
-                    + 'network in a PCAP file')
-    parser.add_argument('-u', '--user', nargs='?', default='neo4j',
-                        help='The user to connect as')
-    parser.add_argument('-p', '--password', nargs='?', default='neo4j',
-                        help='The password to connect to neo4j')
-    parser.add_argument('-a', '--address', nargs='?',
-                        default='bolt://localhost:7687',
-                        help='The url to connect to the server')
-    parser.add_argument('-t', '--test', action='store_true',
-                        help='allows to run the script to just generate the json and csv files')
-    parser.add_argument('pcap', help='PCAP file containing the network to graph')
-    args = parser.parse_args()
-
+def main(pcap_file, test=True, user='neo4j', password='neo4j', address='bolt://localhost:7687'):
     # Creates a directory named the same as the PCAP file
-    name = '.'.join(os.path.basename(args.pcap).split(".")[0:-1])
+    name = '.'.join(os.path.basename(pcap_file).split(".")[0:-1])
     if not os.path.exists(name):
         os.makedirs(name)
 
     # Generates the JSON
     if not os.path.exists(name + '/result.json'):
-        pcap = pcap_to_json(rdpcap(args.pcap))
+        pcap = pcap_to_json(rdpcap(pcap_file))
 
         # Writes to JSON
         with open(name + '/result.json', 'w') as f:
@@ -123,9 +108,27 @@ if __name__ == "__main__":
     indicators(pcap, name)
 
     # If not a test, put the results in Neo4j
-    if not args.test:
+    if not test:
         # Sending to Neo4j
-        driver = GraphDatabase.driver(
-            args.address, auth=(args.user, args.password))
+        driver = GraphDatabase.driver(address, auth=(user, password))
         network_import(driver, pcap['network'])
         driver.close()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Python script to generate a json representation of a '
+                    + 'network in a PCAP file')
+    parser.add_argument('-u', '--user', nargs='?', default='neo4j',
+                        help='The user to connect as')
+    parser.add_argument('-p', '--password', nargs='?', default='neo4j',
+                        help='The password to connect to neo4j')
+    parser.add_argument('-a', '--address', nargs='?',
+                        default='bolt://localhost:7687',
+                        help='The url to connect to the server')
+    parser.add_argument('-t', '--test', action='store_true',
+                        help='allows to run the script to just generate the json and csv files')
+    parser.add_argument('pcap', help='PCAP file containing the network to graph')
+    args = parser.parse_args()
+
+    main(args.pcap, args.test, args.user, args.password, args.address)
