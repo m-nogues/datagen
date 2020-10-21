@@ -1,12 +1,11 @@
-import json
 import re
 from datetime import timedelta
 
-import numpy as np
 import matplotlib
+import matplotlib.patches as patches
 import matplotlib.path as path
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import numpy as np
 
 
 def parse(s):

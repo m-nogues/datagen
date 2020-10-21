@@ -1,8 +1,9 @@
 import argparse
 import json
+import os
+import socket
 
-from scapy.all import *
-from scapy.layers.inet import IP, TCP, UDP
+import dpkt as dpkt
 
 from tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
 
@@ -17,42 +18,38 @@ def pcap_to_json(pkt_file):
     :return: the network as a python dictionary / JSON
     """
     pcap = {'network': {}}
-    for p in pkt_file:
+    for ts, buf in pkt_file:
         # Define the end of the PCAP to the time of the packet until the last one
-        pcap['end'] = float(p.time)
+        pcap['end'] = float(ts)
         # Define the start of the PCAP to the time of the packet only for the first one
         if 'start' not in pcap:
-            pcap['start'] = float(p.time)
+            pcap['start'] = float(ts)
         # Filter packets not having an IP layer
-        if p.haslayer(IP):
-            layer = p[IP]
-        # elif p.haslayer(IPv6):
-        #     layer = p[IPv6]
-        else:
+        ip = dpkt.ethernet.Ethernet(buf).data
+        if not isinstance(ip, dpkt.ip.IP):
             continue
 
-        src, dst = layer.src, layer.dst
+        src, dst = socket.inet_ntoa(ip.src), socket.inet_ntoa(ip.dst)
 
         # Filtering sources and destination to not treat broadcast IP as a machine in the network
         if src in ip_to_filter or ('255' in dst.split('.') or dst in ip_to_filter):
             continue
 
         # Gets ports depending on layer, also filter out layers that are not supported by the program
-        if layer.haslayer(TCP):
-            sport, dport = layer[TCP].sport, layer[TCP].dport
-        elif layer.haslayer(UDP):
-            sport, dport = layer[UDP].sport, layer[UDP].dport
+        if ip.p == dpkt.ip.IP_PROTO_TCP or ip.p == dpkt.ip.IP_PROTO_UDP:
+            proto = ip.data
+            sport, dport = proto.sport, proto.dport
         else:
             continue
 
         # Creates the machine if they don't already exist in our network
         if src not in pcap['network']:
-            pcap['network'][src] = {"ip": src, "relations": {}, 'start': float(p.time), 'end': float(p.time)}
+            pcap['network'][src] = {"ip": src, "relations": {}, 'start': float(ts), 'end': float(ts)}
         if dst not in pcap['network']:
-            pcap['network'][dst] = {"ip": dst, "relations": {}, 'start': float(p.time), 'end': float(p.time)}
+            pcap['network'][dst] = {"ip": dst, "relations": {}, 'start': float(ts), 'end': float(ts)}
 
         # Sets the end of life of both source and destination machine to the time of arrival of the current packet
-        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = float(p.time)
+        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = float(ts)
 
         # Flag packets sent to an ephemeral port as response to a previous exchange
         if (32768 <= dport <= 65535) or (dst in pcap['network']
@@ -89,7 +86,8 @@ def main(pcap_file):
 
     # Generates the JSON
     if not os.path.exists(name + '/result.json'):
-        pcap = pcap_to_json(rdpcap(pcap_file))
+        with open(pcap_file) as f:
+            pcap = pcap_to_json(dpkt.pcap.Reader(f))
 
         # Writes to JSON
         with open(name + '/result.json', 'w') as f:

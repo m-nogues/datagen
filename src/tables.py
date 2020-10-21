@@ -3,8 +3,8 @@ import os
 from copy import deepcopy
 from datetime import datetime
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def write_rows(name, fields, rows):
@@ -165,7 +165,7 @@ def extract(network):
             if 'response' in table[src]['relations'][dst]:
                 response += table[src]['relations'][dst].pop('response')
             for port in table[src]['relations'][dst]:
-                ports.add(port)
+                ports.add(int(port))
                 total_packets += table[src]['relations'][dst][port]
 
     return response / total_packets, total_packets, list(ports)
