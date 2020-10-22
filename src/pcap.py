@@ -3,7 +3,7 @@ import json
 import os
 import socket
 
-import dpkt as dpkt
+import dpkt
 
 from tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
 
