@@ -32,15 +32,15 @@ def pcap_to_json(pkt_file):
         src, dst = socket.inet_ntoa(ip.src), socket.inet_ntoa(ip.dst)
 
         # Filtering sources and destination to not treat broadcast IP as a machine in the network
-        if src in ip_to_filter or ('255' in dst.split('.') or dst in ip_to_filter):
+        if src in ip_to_filter or dst in ip_to_filter or '255' in dst.split('.'):
             continue
 
-        # Gets ports depending on layer, also filter out layers that are not supported by the program
-        if ip.p == dpkt.ip.IP_PROTO_TCP or ip.p == dpkt.ip.IP_PROTO_UDP:
-            proto = ip.data
-            sport, dport = proto.sport, proto.dport
-        else:
+        # Filters out layers that are not supported by the program
+        if not (ip.p == dpkt.ip.IP_PROTO_TCP or ip.p == dpkt.ip.IP_PROTO_UDP):
             continue
+
+        proto = ip.data
+        sport, dport = proto.sport, proto.dport
 
         # Creates the machine if they don't already exist in our network
         if src not in pcap['network']:
