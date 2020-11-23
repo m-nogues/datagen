@@ -95,7 +95,6 @@ class First(QMainWindow):
                 output = pcap.main([text2])
 
                 if not os.path.exists(output + '/pdf/Resultats.pdf'):  # verifie si le fichier a déjà été analysé
-                    os.makedirs(output + '/pdf/', exist_ok=True)
 
                     if os.path.exists(output + '/csv/flow_matrix.csv'):
                         csv2bar(output + '/csv/flow_matrix.csv')
@@ -105,7 +104,7 @@ class First(QMainWindow):
                         csv2bar(output + '/csv/machine_role.csv')
 
                     # creation du graph spyder
-                    json_report(os.getcwd().replace('\\', '/') + '/' + output + '/indicators.json', output)
+                    json_report(output + '/indicators.json', output)
 
                     pdfs = [f for f in os.listdir(output + '/pdf/') if os.path.isfile(f) and f.endswith('.pdf')]
                     merge_pdfs(pdfs, output + '/pdf/')
@@ -122,14 +121,14 @@ class First(QMainWindow):
 
                 open_file(output + '/pdf/Resultats.pdf')  # ouverture du fichier pdf
 
-                with open(os.getcwd().replace('\\', '/') + '/' + output + '/result.json', "r") as f:
+                with open(output + '/result.json', "r") as f:
                     content2 = json.load(f)
                     start = content2['start']
                     end = content2['end']
                 start_dt = datetime.fromtimestamp(start)
                 end_dt = datetime.fromtimestamp(end)
 
-                with open(os.getcwd().replace('\\', '/') + '/' + output + '/indicators.json', "r") as f:
+                with open(output + '/indicators.json', "r") as f:
                     content = json.load(f)
                     a = content['exchanges']
                     b = content['ips']

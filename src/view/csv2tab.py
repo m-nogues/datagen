@@ -22,6 +22,8 @@ def csv2bar(csv):
 
     plt.tight_layout()
 
+    os.makedirs(basedir, exist_ok=True)
+
     # plt.savefig(basedir + file + '.pgf')
     plt.savefig(basedir + file + '.pdf')
     # plt.show()

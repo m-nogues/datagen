@@ -5,35 +5,8 @@ import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 
 
-def _invert(x, limits):
-    """inverts a value x on a scale from
-    limits[0] to limits[1]"""
-    return limits[1] - (x - limits[0])
-
-
 def _scale_data(data, ranges):
-    """scales data[1:] to ranges[0],
-    inverts if the scale is reversed"""
-    for d, (mini, maxi) in zip(data, ranges):
-        assert (mini <= d <= maxi)
-
-    x1, x2 = ranges[0]
-    d = data[0]
-
-    if x1 > x2:
-        d = _invert(d, (x1, x2))
-        x1, x2 = x2, x1
-
-    sdata = [d]
-
-    for d, (mini, maxi) in zip(data[1:], ranges[1:]):
-        if mini > maxi:
-            d = _invert(d, (mini, maxi))
-            mini, maxi = maxi, mini
-
-        sdata.append((d - mini) / (maxi - mini) * (x2 - x1) + x1)
-
-    return sdata
+    return data
 
 
 def set_rgrids(self, radii, labels=None, angle=None, fmt=None, **kwargs):
@@ -54,7 +27,6 @@ def set_rgrids(self, radii, labels=None, angle=None, fmt=None, **kwargs):
     # Make sure we take into account unitized data
     radii = self.convert_xunits(radii)
     radii = np.asarray(radii)
-    rmin = radii.min()
     # if rmin <= 0:
     #     raise ValueError('radial grids must be strictly positive')
 
@@ -115,7 +87,8 @@ def json_report(json_fich, output):
         val = json.load(f)
 
     variables = (' ips', ' response_avg', 'ports', '1st_quartile', 'variance en s',)
-    data = [val['ips'], val['response_avg'], len(val['ports']), val['ip_life']['1st_quartile'], float(val['ip_life']['variance'])]
+    data = [val['ips'], val['response_avg'], len(val['ports']), val['ip_life']['1st_quartile'],
+            float(val['ip_life']['variance'])]
     ranges = [(0, 2000), (0, 4), (0, 1000), (0, 3), (0, 2 * float(val['ip_life']['variance']))]
     # l'échelle depend pour beaucoup des donnés ici elle est assez grande pour les gros fichier de plusieurs Go
 
