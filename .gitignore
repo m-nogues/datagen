@@ -69,3 +69,5 @@ vms/
 pcaps/
 *.json
 *.pdf
+*.txt
+*.db
