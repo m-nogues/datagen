@@ -1,0 +1,6 @@
+Le score totale est: 19.682931581610426/40
+La présence des ports à surveiller est: 1.25/10
+Le score de taille de l architecture est: 5.4/10
+Le score du ratio nombre IP échange: 5.166020852309741/10
+Le score taux de réponse moyen: 7.866910729300686/10
+La capture réseau est de 15320.66939163208 secondes

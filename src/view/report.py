@@ -6,12 +6,12 @@ from PyPDF2 import PdfFileMerger
 from view.csv2tab import csv2bar
 
 
-def merge_pdfs(pdfs):
+def merge_pdfs(pdfs, output):
     merger = PdfFileMerger()
 
     for pdf in pdfs:
         merger.append(pdf)
-    merger.write('report.pdf')
+    merger.write(output + 'report.pdf')
     merger.close()
 
 
@@ -26,4 +26,4 @@ if __name__ == '__main__':
         csv2bar(csv)
 
     pdfs = [f for f in os.listdir(os.path.dirname(csvs[0])) if os.path.isfile(f) and f.endswith('.pdf')]
-    merge_pdfs(pdfs)
+    merge_pdfs(pdfs, os.path.dirname(csvs[0]) + '/')

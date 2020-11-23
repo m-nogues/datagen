@@ -181,15 +181,14 @@ def first_quartile(lives):
     return len([i for i in lives if i <= quartile]) / len(lives)
 
 
-def ip_life(network):
+def ip_life(pcap):
     """
     Performs the calculation for the indicators on life durations for the machines in the given network
     :param network: the description of the network
     :return: the dictionary containing the variance and the percentage of machines in the first quartile
     """
-    lives = [v['end'] - v['start'] for _, v in network.items()]
-    return {'1st_quartile': first_quartile(lives), 'variance': str(datetime.fromtimestamp(float(np.var(lives))) -
-                                                                   datetime.fromtimestamp(0))}
+    lives = [v['end'] - v['start'] for _, v in pcap['network'].items()]
+    return {'1st_quartile': first_quartile(lives), 'variance': float(np.var(lives))}
 
 
 def indicators(pcap, name):
@@ -199,10 +198,9 @@ def indicators(pcap, name):
     :param name: the name of the pcap file tested
     """
     resp, total_packets, ports = extract(pcap['network'])
-    indi = {'response_avg': resp, 'ip_life': ip_life(deepcopy(pcap['network'])), 'ips': len(pcap['network']),
+    indi = {'response_avg': resp, 'ip_life': ip_life(deepcopy(pcap)), 'ips': len(pcap['network']),
             'exchanges': total_packets, 'ports': ports,
-            'total_duration': str(datetime.fromtimestamp(float(pcap['end'] - pcap['start'])) -
-                                  datetime.fromtimestamp(0))}
+            'total_duration': float(pcap['end'] - pcap['start'])}
 
     # Writes to JSON
     with open(name + '/indicators.json', 'w') as f:

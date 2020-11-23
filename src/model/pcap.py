@@ -5,19 +5,19 @@ import socket
 
 import dpkt
 
-from tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
+from model.tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
 
 # The list of IP address to filter from the PCAPs
 ip_to_filter = ['0.0.0.0', '224.0.0.22', '224.0.0.252']
 
 
-def pcap_to_json(pkt_file):
+def pcap_to_json(pkt_file, pcap):
     """
     Analyses the PCAP file and creates the JSON description of the network it represents
+    :param pcap: the dictionary to write the network information to
     :param pkt_file: the PCAP file
     :return: the network as a python dictionary / JSON
     """
-    pcap = {'network': {}}
     for ts, buf in pkt_file:
         # Define the end of the PCAP to the time of the packet until the last one
         pcap['end'] = float(ts)
@@ -40,7 +40,16 @@ def pcap_to_json(pkt_file):
             continue
 
         proto = ip.data
-        sport, dport = proto.sport, proto.dport
+
+        try:
+            sport = proto.sport
+        except AttributeError:
+            sport = 0
+
+        try:
+            dport = proto.dport
+        except AttributeError:
+            dport = 0
 
         # Creates the machine if they don't already exist in our network
         if src not in pcap['network']:
@@ -78,16 +87,23 @@ def pcap_to_json(pkt_file):
     return pcap
 
 
-def main(pcap_file):
+def main(pcap_files):
+    # Creates the JSON to write information to
+    pcap = {'network': {}}
     # Creates a directory named the same as the PCAP file
-    name = '.'.join(os.path.basename(pcap_file).split(".")[0:-1])
-    if not os.path.exists(name):
-        os.makedirs(name)
+    name = '.'.join(os.path.basename(pcap_files[0]).split(".")[0:-1])
 
-    # Generates the JSON
+    os.makedirs(name, exist_ok=True)
+
     if not os.path.exists(name + '/result.json'):
-        with open(pcap_file, 'rb') as f:
-            pcap = pcap_to_json(dpkt.pcap.Reader(f))
+        for pcap_file in pcap_files:
+            # Generates the JSON
+            try:
+                with open(pcap_file, 'rb') as f:
+                    pcap = pcap_to_json(dpkt.pcap.Reader(f), pcap)
+            except ValueError:
+                with open(pcap_file, 'rb') as f:
+                    pcap = pcap_to_json(dpkt.pcapng.Reader(f), pcap)
 
         # Writes to JSON
         with open(name + '/result.json', 'w') as f:
@@ -103,12 +119,14 @@ def main(pcap_file):
     flow_matrix(pcap['network'], name)
     indicators(pcap, name)
 
+    return name
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Python script to generate a json representation of a '
                     + 'network in a PCAP file')
-    parser.add_argument('pcap', help='PCAP file containing the network to graph')
+    parser.add_argument('pcap', nargs='+', help='PCAP file containing the network to graph')
     args = parser.parse_args()
 
     main(args.pcap)

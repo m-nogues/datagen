@@ -11,7 +11,7 @@ import pandas as pd
 def csv2bar(csv):
     df = pd.read_csv(csv)
     file = '.'.join(os.path.basename(csv).split(".")[0:-1])
-    basedir = '/'.join(os.path.dirname(csv).split('/')[0:-1]) + '/'
+    basedir = '/'.join(os.path.dirname(csv).split('/')[0:-1]) + '/pdf/'
     x_axis = df.columns[0]
     xy = x_axis.split('\\')
     df.plot.bar(x=x_axis)
