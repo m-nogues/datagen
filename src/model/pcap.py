@@ -117,9 +117,9 @@ def main(pcap_files):
     machine_role(pcap['network'], name)
     machine_use(pcap['network'], name)
     flow_matrix(pcap['network'], name)
-    indicators(pcap, name)
+    indi = indicators(pcap, name)
 
-    return name
+    return name, pcap, indi
 
 
 if __name__ == "__main__":

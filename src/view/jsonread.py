@@ -43,7 +43,7 @@ def set_rgrids(self, radii, labels=None, angle=None, fmt=None, **kwargs):
     return self.yaxis.get_gridlines(), self.yaxis.get_ticklabels()
 
 
-def json_report(json_fich, output):
+def json_report(indi, file_name):
     class ComplexRadar:
         def __init__(self, fig, variables, ranges,
                      n_ordinate_levels=6):
@@ -82,18 +82,14 @@ def json_report(json_fich, output):
             sdata = _scale_data(data, self.ranges)
             self.ax.fill(self.angle, np.r_[sdata, sdata[0]], *args, **kw)
 
-    # # example data
-    with open(json_fich, "r") as f:
-        val = json.load(f)
-
     variables = (' ips', ' response_avg', 'ports', '1st_quartile', 'variance en s',)
-    data = [val['ips'], val['response_avg'], len(val['ports']), val['ip_life']['1st_quartile'],
-            float(val['ip_life']['variance'])]
-    ranges = [(0, 2000), (0, 4), (0, 1000), (0, 3), (0, 2 * float(val['ip_life']['variance']))]
+    data = [indi['ips'], indi['response_avg'], len(indi['ports']), indi['ip_life']['1st_quartile'],
+            float(indi['ip_life']['variance'])]
+    ranges = [(0, 2000), (0, 4), (0, 1000), (0, 3), (0, 2 * float(indi['ip_life']['variance']))]
     # l'échelle depend pour beaucoup des donnés ici elle est assez grande pour les gros fichier de plusieurs Go
 
     fig1 = plt.figure(figsize=(6, 6))
     radar = ComplexRadar(fig1, variables, ranges)
     radar.plot(data)
     radar.fill(data, alpha=0.2)
-    plt.savefig(output + '/pdf/radar-chart.pdf', facecolor='white')
+    plt.savefig(file_name + '/pdf/radar-chart.pdf', facecolor='white')

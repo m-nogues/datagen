@@ -205,3 +205,5 @@ def indicators(pcap, name):
     # Writes to JSON
     with open(name + '/indicators.json', 'w') as f:
         json.dump(indi, f, indent='\t')
+
+    return indi
