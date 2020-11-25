@@ -188,7 +188,7 @@ def ip_life(pcap):
     :return: the dictionary containing the variance and the percentage of machines in the first quartile
     """
     lives = [v['end'] - v['start'] for _, v in pcap['network'].items()]
-    return {'1st_quartile': first_quartile(lives), 'variance': float(np.var(lives))}
+    return {'fst_quartile': first_quartile(lives), 'std_deviation': float(np.std(lives))}
 
 
 def indicators(pcap, name):
@@ -198,9 +198,9 @@ def indicators(pcap, name):
     :param name: the name of the pcap file tested
     """
     resp, total_packets, ports = extract(pcap['network'])
-    indi = {'response_avg': resp, 'ip_life': ip_life(deepcopy(pcap)), 'ips': len(pcap['network']),
-            'exchanges': total_packets, 'ports': ports,
+    indi = {'response_avg': resp, 'ips': len(pcap['network']), 'exchanges': total_packets, 'ports': ports,
             'total_duration': float(pcap['end'] - pcap['start'])}
+    indi.update(ip_life(deepcopy(pcap)))
 
     # Writes to JSON
     with open(name + '/indicators.json', 'w') as f:

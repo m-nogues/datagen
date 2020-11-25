@@ -15,10 +15,8 @@ from PyQt5 import QtWidgets as qtw
 from model import pcap
 from view.csv2tab import csv2bar
 from view.jsonread import json_report
-from view.report import merge_pdfs
-from view.score import score
-
-version = 1.0
+from report import merge_pdfs
+from score import score
 
 
 class First(qtw.QMainWindow):
@@ -32,7 +30,7 @@ class First(qtw.QMainWindow):
         self.width = 1000
         self.height = 750
         self.setWindowTitle(self.title)
-        image = qtg.QPixmap(os.path.dirname(os.getcwd()) + '/fond.jpg')
+        image = qtg.QPixmap('background.jpg')
         image.scaled(32, 32, qtc.Qt.KeepAspectRatio, qtc.Qt.FastTransformation)
         self.image0 = qtg.QImage(image)
         palette = qtg.QPalette()
@@ -43,13 +41,13 @@ class First(qtw.QMainWindow):
         self._main = qtw.QWidget()
         layout_v = qtw.QVBoxLayout()
         layout_v.addWidget(qtw.QLabel(
-            '<strong><font size=20  color=\"#00CED1\">Ceci est une interface graphique permettant d analyser les fichiers PCAP. <br />Ce logiciel a notamment pour but de comparer plusieurs fichiers afin de les trier et <br /> d evaluer  les plus aptes a l entrainement des sondes de detections.<font></strong>'))
+            '<strong><font size=20  color=\"#00CED1\">Ceci est une interface graphique permettant d analyser les fichiers PCAP.<br />Ce logiciel a notamment pour but de comparer plusieurs fichiers afin de les trier et <br /> d evaluer  les plus aptes a l entrainement des sondes de detections.<font></strong>'))
         layout_v.addWidget(qtw.QLabel(
             '<strong><font size=20 color=\"#00CED1\">Pour commencer l analyse de fichier veuillez presser le bouton ci dessous  pour parcourir<br/> les fichiers :</font></strong>'))
-        Label = qtw.QLabel(self)
-        Label.setPixmap(image)
-        Label.resize(image.width(), image.height())
-        # layout_v.addWidget(Label)
+        label = qtw.QLabel(self)
+        label.setPixmap(image)
+        label.resize(image.width(), image.height())
+        # layout_v.addWidget(label)
         button = qtw.QPushButton('open')
         layout_v.addWidget(button)
         button.clicked.connect(self.open)
@@ -60,7 +58,6 @@ class First(qtw.QMainWindow):
         # Menu Bar
         menu = self.menuBar()  # -> QMenuBar
         file_menu = menu.addMenu('File')  # -> QMenu
-        tool_menu = menu.addMenu('Tool')
 
         # Add keyboard shortcuts using QKeySequence constants
         file_menu.addAction(
@@ -70,7 +67,7 @@ class First(qtw.QMainWindow):
             qtg.QKeySequence.Open,
         )
         # ToolBar
-        edit_toolbar = self.addToolBar('Edit')
+        self.addToolBar('Edit')
         self.statusBar().showMessage('IHM Analyse de trace réseau')
         self.show()
 
@@ -118,7 +115,7 @@ class First(qtw.QMainWindow):
                 t2 = perf_counter()
 
                 insert_db(sha256, file_name, S[0], indi['ips'], len(indi['ports']), indi['response_avg'],
-                          indi['ip_life']['variance'], start_dt, end_dt, t2 - t1, version)
+                          indi['ip_life']['variance'], start_dt, end_dt, t2 - t1)
 
     def second_m(self, scr):
         """Lance la deuxième fenêtre"""
@@ -130,7 +127,7 @@ class First(qtw.QMainWindow):
         self.second.show()
 
 
-def insert_db(sha256, name, score, nb_ip, nb_port, answer_rate, variance_ip_life, start, end, analyse_time, version):
+def insert_db(sha256, name, score, nb_ip, nb_port, answer_rate, variance_ip_life, start, end, analyse_time):
     if not os.path.exists('results.db'):
         sql = '''CREATE TABLE analyse (
                         sha256 TEXT PRIMARY KEY NOT NULL,
@@ -143,7 +140,6 @@ def insert_db(sha256, name, score, nb_ip, nb_port, answer_rate, variance_ip_life
         sql2 = '''CREATE TABLE PCAP (
                     id INTEGER PRIMARY KEY,
                     date_analyse DATE ,
-                    version DECIMAL ,
                     nom_PCAP TEXT ,
                     sha256 TEXT,
                     debut_capture DATETIME,
@@ -160,10 +156,10 @@ def insert_db(sha256, name, score, nb_ip, nb_port, answer_rate, variance_ip_life
         sql = "INSERT INTO analyse (sha256, score, nombre_ip, nombre_port, taux_de_reponse, variance_ip_life) " \
               "VALUES (?, ?, ?, ?, ?, ?) "
         value = (sha256, score, nb_ip, nb_port, answer_rate, variance_ip_life)
-        sql3 = "INSERT INTO PCAP (date_analyse, version, nom_PCAP, sha256, debut_capture, fin_capture, " \
-               "temps_analyse) VALUES (?, ?, ?, ?, ?, ?, ?) "
+        sql3 = "INSERT INTO PCAP (date_analyse, nom_PCAP, sha256, debut_capture, fin_capture, " \
+               "temps_analyse) VALUES (?, ?, ?, ?, ?, ?) "
         value2 = (
-            str(datetime.now().date()), version, name, sha256, start, end, analyse_time)
+            str(datetime.now().date()), name, sha256, start, end, analyse_time)
         with sqlite3.connect('resultat.db') as conn:
             print("Connexion réussie à SQLite")
             with conn.cursor() as cur:

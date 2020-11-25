@@ -1,6 +1,42 @@
 import json
 
 
+ports = ['80', '21']
+
+def ips(indi):
+    score = (indi['nb_ips'] // 10) * .01
+    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['nb_ips'] > 0 else 0.0
+
+
+def exchanges(indi):
+    score = (indi['nb_exchanges'] // 1000) * .01
+    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['nb_exchanges'] > 0 else 0.0
+
+
+def response_avg(indi):
+    return indi['avg'] if indi['avg'] <= 1 else int(indi['avg']) + 1 - indi['avg']
+
+
+def ports(indi):
+    score = len(indi['ports'])
+    return score
+
+
+def total_duration(indi):
+    score = indi['total_duration']
+    return score
+
+
+def fst_quartile(indi):
+    score = 1.25 - indi['fst_quartile'] if indi['fst_quartile'] >= .25 else .75 + indi['fst_quartile']
+    return score
+
+
+def std_deviation(indi):
+    score = 1 - indi['std_deviation'] / indi['total_duration']
+    return score
+
+
 def score(json_fich, resultat):
     with open(json_fich, "r") as f:
         content = json.load(f)

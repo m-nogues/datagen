@@ -96,7 +96,7 @@ def radar_factory(num_vars, frame='circle'):
     return theta
 
 
-def report(data):
+def graph(data, output = 'radar.pdf'):
     N = len(data[0])
     theta = radar_factory(N, frame='polygon')
 
@@ -114,7 +114,8 @@ def report(data):
         ax.fill(theta, d, alpha=0.25)
     ax.set_varlabels(spoke_labels)
 
-    plt.show()
+    plt.savefig(output)
+    # plt.show()
 
 
 def load(file):
@@ -130,11 +131,11 @@ def load(file):
                           [0.02, 0.01, 0.07, 0.01, 0.21, 0.12, 0.98, 0.00, 0.00],
                           [0.01, 0.01, 0.02, 0.71, 0.74, 0.70, 0.00, 0.00, 0.00]])]
 
-    report(data)
+    graph(data)
 
 
 if __name__ == "__main__":
     data = [['Sulfate', 'Nitrate', 'EC', 'OC1', 'OC2', 'OC3', 'OP', 'CO', 'O3'],
             ('Basecase', [[0.01, 0.02, 0.85, 0.19, 0.05, 0.10, 0.00, 0.00, 0.00]])]
 
-    report(data)
+    graph(data)
