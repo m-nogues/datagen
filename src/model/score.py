@@ -1,20 +1,20 @@
 import json
 
-
 ports = ['80', '21']
 
+
 def ips(indi):
-    score = (indi['nb_ips'] // 10) * .01
-    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['nb_ips'] > 0 else 0.0
+    score = (indi['ips'] // 10) * .01
+    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['ips'] > 0 else 0.0
 
 
 def exchanges(indi):
-    score = (indi['nb_exchanges'] // 1000) * .01
-    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['nb_exchanges'] > 0 else 0.0
+    score = (indi['exchanges'] // 1000) * .01
+    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['exchanges'] > 0 else 0.0
 
 
 def response_avg(indi):
-    return indi['avg'] if indi['avg'] <= 1 else int(indi['avg']) + 1 - indi['avg']
+    return indi['response_avg'] if indi['response_avg'] <= 1 else int(indi['response_avg']) + 1 - indi['response_avg']
 
 
 def ports(indi):
@@ -23,7 +23,7 @@ def ports(indi):
 
 
 def total_duration(indi):
-    score = indi['total_duration']
+    score = 1
     return score
 
 
@@ -33,8 +33,7 @@ def fst_quartile(indi):
 
 
 def std_deviation(indi):
-    score = 1 - indi['std_deviation'] / indi['total_duration']
-    return score
+    return indi['std_deviation'] / indi['total_duration']
 
 
 def score(json_fich, resultat):

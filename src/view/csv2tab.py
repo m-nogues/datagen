@@ -14,7 +14,7 @@ def csv2bar(csv):
     basedir = '/'.join(os.path.dirname(csv).split('/')[0:-1]) + '/pdf/'
     x_axis = df.columns[0]
     xy = x_axis.split('\\')
-    df.plot.bar(x=x_axis)
+    ax = df.plot.bar(x=x_axis)
 
     plt.title(file.replace('_', ' ').capitalize())
     plt.xlabel(xy[0])
@@ -27,6 +27,8 @@ def csv2bar(csv):
     # plt.savefig(basedir + file + '.pgf')
     plt.savefig(basedir + file + '.pdf')
     # plt.show()
+
+    return ax.get_figure()
 
 
 if __name__ == "__main__":

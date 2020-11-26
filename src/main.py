@@ -11,5 +11,5 @@ if __name__ == "__main__":
         from model.pcap import main
         main(args.pcap)
     else:
-        from view.ihm import main
+        from view.view import main
         main()

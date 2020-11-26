@@ -2,9 +2,9 @@ import argparse
 import os
 
 from PyPDF2 import PdfFileMerger
-
-from model.score import *
-from radar import graph
+from model import score
+# from model.score import *
+from view import radar
 from view.csv2tab import csv2bar
 
 
@@ -23,22 +23,15 @@ def scoring(indi):
         try:
             score_list.append(getattr(score, key)(indi))
         except AttributeError:
-            raise NotImplementedError("Method `{}` is not implemented".format(key))
+            print("Method `{}` is not implemented".format(key))
     return score_list
 
 
-def report(name, indi, network):
-    if not os.path.exists(name + '/pdf/results.pdf'):
-        if os.path.exists(name + '/csv/flow_matrix.csv'):
-            csv2bar(name + '/csv/flow_matrix.csv')
-        if os.path.exists(name + '/csv/machine_use.csv'):
-            csv2bar(name + '/csv/machine_use.csv')
-        if os.path.exists(name + '/csv/machine_role.csv'):
-            csv2bar(name + '/csv/machine_role.csv')
-
+def report(name, indi):
     data = [indi.keys(), ('Radar Score', [scoring(indi)])]
-    graph(data, name + '/pdf/radar.pdf')
+    fig = radar.graph(data, name + '/pdf/radar.pdf')
 
+    return fig
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python script to create a report from different CSV file')

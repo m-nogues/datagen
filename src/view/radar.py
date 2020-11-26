@@ -114,8 +114,11 @@ def graph(data, output = 'radar.pdf'):
         ax.fill(theta, d, alpha=0.25)
     ax.set_varlabels(spoke_labels)
 
+    plt.tight_layout()
+
     plt.savefig(output)
     # plt.show()
+    return fig
 
 
 def load(file):

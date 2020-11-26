@@ -1,13 +1,27 @@
 import os
+import sys
+
+import matplotlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QVBoxLayout
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-import model.pcap as pcap
-from model.report import report
 from view.csv2tab import csv2bar
+from model import pcap
+from model.report import report
+
+matplotlib.use('Qt5Agg')
 
 
-class MainWindow(object):
+# class MplCanvas(FigureCanvas):
+#     def __init__(self, width=5, height=4, dpi=100):
+#         fig = Figure(figsize=(width, height), dpi=dpi)
+#         self.axes = fig.add_subplot(111)
+#         super(MplCanvas, self).__init__(fig)
+
+
+class MainWindow(QtWidgets.QMainWindow):
     def setup_ui(self, main_window):
         main_window.setObjectName("MainWindow")
         main_window.resize(800, 592)
@@ -33,9 +47,10 @@ class MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(main_window)
         self.statusbar.setObjectName("statusbar")
         main_window.setStatusBar(self.statusbar)
-        self.actionOpen = QtWidgets.QAction(self.open())
+        self.actionOpen = QtWidgets.QAction()
         self.actionOpen.setShortcutVisibleInContextMenu(True)
         self.actionOpen.setObjectName("actionOpen")
+        self.actionOpen.triggered.connect(self.open)
         self.menuFile.addAction(self.actionOpen)
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -50,7 +65,38 @@ class MainWindow(object):
         self.actionOpen.setShortcut(_translate("MainWindow", "Ctrl+O"))
 
     def open(self):
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(filter='pcap')
-        name, network, indi = pcap.main(filename)
+        filename, _ = QtWidgets.QFileDialog.getOpenFileNames(filter='*.pcap*')
 
-        report(name, indi, network)
+        if filename:
+            name, network, indi = pcap.main(filename)
+
+            layout = QVBoxLayout()
+            self.centralwidget.setLayout(layout)
+
+            if not os.path.exists(name + '/pdf/results.pdf'):
+                if os.path.exists(name + '/csv/flow_matrix.csv'):
+                    sc = FigureCanvas(csv2bar(name + '/csv/flow_matrix.csv'))
+                    layout.addWidget(sc)
+                    sc.draw()
+                if os.path.exists(name + '/csv/machine_use.csv'):
+                    sc = FigureCanvas(csv2bar(name + '/csv/machine_use.csv'))
+                    layout.addWidget(sc)
+                    sc.draw()
+                if os.path.exists(name + '/csv/machine_role.csv'):
+                    sc = FigureCanvas(csv2bar(name + '/csv/machine_role.csv'))
+                    layout.addWidget(sc)
+                    sc.draw()
+
+            sc = FigureCanvas(report(name, indi))
+            layout.addWidget(sc)
+            sc.draw()
+
+
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+
+    main = MainWindow()
+    main.setup_ui(main)
+    main.show()
+
+    sys.exit(app.exec_())
