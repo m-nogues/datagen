@@ -1,16 +1,14 @@
 import json
 
-ports = ['80', '21']
-
 
 def ips(indi):
-    score = (indi['ips'] // 10) * .01
-    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['ips'] > 0 else 0.0
+    score = (indi['ips'] / 10) * .01
+    return score if 1 > score else 1
 
 
 def exchanges(indi):
-    score = (indi['exchanges'] // 1000) * .01
-    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['exchanges'] > 0 else 0.0
+    score = (indi['exchanges'] / 1000) * .01
+    return score if 1 > score >= .01 else 1
 
 
 def response_avg(indi):
@@ -18,13 +16,12 @@ def response_avg(indi):
 
 
 def ports(indi):
-    score = len(indi['ports'])
-    return score
+    ports = [80, 21]
+    return len(set(indi['ports']) & set(ports)) * (1 / len(ports))
 
 
 def total_duration(indi):
-    score = 1
-    return score
+    return 1
 
 
 def fst_quartile(indi):

@@ -96,9 +96,8 @@ def radar_factory(num_vars, frame='circle'):
     return theta
 
 
-def graph(data, output = 'radar.pdf'):
-    N = len(data[0])
-    theta = radar_factory(N, frame='polygon')
+def graph(data, output='radar.pdf'):
+    theta = radar_factory(len(data[0]), frame='polygon')
 
     spoke_labels = data.pop(0)
     title, case_data = data[0]
@@ -119,22 +118,6 @@ def graph(data, output = 'radar.pdf'):
     plt.savefig(output)
     # plt.show()
     return fig
-
-
-def load(file):
-    # Gets the name of the directory where the indicators are
-    name = '.'.join(os.path.basename(file).split(".")[0:-1])
-
-    os.makedirs(name + '/pdfs', exist_ok=True)
-
-    data = [['Sulfate', 'Nitrate', 'EC', 'OC1', 'OC2', 'OC3', 'OP', 'CO', 'O3'],
-            ('Basecase', [[0.88, 0.01, 0.03, 0.03, 0.00, 0.06, 0.01, 0.00, 0.00],
-                          [0.07, 0.95, 0.04, 0.05, 0.00, 0.02, 0.01, 0.00, 0.00],
-                          [0.01, 0.02, 0.85, 0.19, 0.05, 0.10, 0.00, 0.00, 0.00],
-                          [0.02, 0.01, 0.07, 0.01, 0.21, 0.12, 0.98, 0.00, 0.00],
-                          [0.01, 0.01, 0.02, 0.71, 0.74, 0.70, 0.00, 0.00, 0.00]])]
-
-    graph(data)
 
 
 if __name__ == "__main__":
