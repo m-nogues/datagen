@@ -16,9 +16,7 @@ def write_rows(name, fields, rows):
     """
 
     # Creates missing directories in the name of the file
-    dirs = os.path.dirname(name)
-    if not os.path.exists(dirs):
-        os.makedirs(dirs)
+    os.makedirs(os.path.dirname(name), exist_ok=True)
 
     # Adds the fields names
     df = pd.DataFrame(rows).set_index(fields[0])
@@ -53,7 +51,8 @@ def machine_behavior(network, name):
             if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
                 continue
             rows += [row]
-        write_rows(str(name + '/csv/machine_behavior-' + src + '.csv'), fields, rows)
+        if rows and fields:
+            write_rows(str(name + '/csv/machine_behavior-' + src + '.csv'), fields, rows)
 
 
 def flow_matrix(network, name):
@@ -76,7 +75,8 @@ def flow_matrix(network, name):
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
-    write_rows(name + '/csv/flow_matrix.csv', fields, rows)
+    if rows and fields:
+        write_rows(name + '/csv/flow_matrix.csv', fields, rows)
 
 
 def machine_use(network, name):
@@ -108,7 +108,8 @@ def machine_use(network, name):
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
-    write_rows(name + '/csv/machine_use.csv', fields, rows)
+    if rows and fields:
+        write_rows(name + '/csv/machine_use.csv', fields, rows)
 
 
 def machine_role(network, name):
@@ -147,7 +148,8 @@ def machine_role(network, name):
         if 0 >= sum([e if type(e) is int else 0 for e in row.values()]):
             continue
         rows += [row]
-    write_rows(name + '/csv/machine_role.csv', fields, rows)
+    if rows and fields:
+        write_rows(name + '/csv/machine_role.csv', fields, rows)
 
 
 def extract(network):

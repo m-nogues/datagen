@@ -23,8 +23,7 @@ def ports(indi):
 
 
 def total_duration(indi):
-    score = 1
-    return score
+    return 1
 
 
 def fst_quartile(indi):

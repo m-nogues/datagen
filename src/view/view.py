@@ -4,6 +4,7 @@ import sys
 import matplotlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QObjectCleanupHandler
 from PyQt5.QtWidgets import QVBoxLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -29,24 +30,34 @@ class MainWindow(QtWidgets.QMainWindow):
         icon.addPixmap(QtGui.QPixmap("src/logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         main_window.setWindowIcon(icon)
         main_window.setAutoFillBackground(True)
-        main_window.setStyleSheet("")
-        main_window.setTabShape(QtWidgets.QTabWidget.Triangular)
         main_window.setUnifiedTitleAndToolBarOnMac(True)
+
+        # Main window content
         self.centralwidget = QtWidgets.QWidget(main_window)
-        self.centralwidget.setAcceptDrops(False)
-        self.centralwidget.setAutoFillBackground(True)
-        self.centralwidget.setStyleSheet("")
         self.centralwidget.setObjectName("centralwidget")
-        main_window.setCentralWidget(self.centralwidget)
+
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setWidget(self.centralwidget)
+
+        main_window.setCentralWidget(self.scroll)
+
+        # Menu bar
         self.menubar = QtWidgets.QMenuBar(main_window)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
         main_window.setMenuBar(self.menubar)
+
+        # Status bar
         self.statusbar = QtWidgets.QStatusBar(main_window)
         self.statusbar.setObjectName("statusbar")
         main_window.setStatusBar(self.statusbar)
+
+        # Open file
         self.actionOpen = QtWidgets.QAction()
         self.actionOpen.setShortcutVisibleInContextMenu(True)
         self.actionOpen.setObjectName("actionOpen")
@@ -70,8 +81,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if filename:
             name, network, indi = pcap.main(filename)
 
-            layout = QVBoxLayout()
-            self.centralwidget.setLayout(layout)
+            if self.centralwidget.layout():
+                QObjectCleanupHandler().add(self.centralwidget.layout())
+            layout = QVBoxLayout(self.centralwidget)
 
             if not os.path.exists(name + '/pdf/results.pdf'):
                 if os.path.exists(name + '/csv/flow_matrix.csv'):

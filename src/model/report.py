@@ -29,9 +29,8 @@ def scoring(indi):
 
 def report(name, indi):
     data = [indi.keys(), ('Radar Score', [scoring(indi)])]
-    fig = radar.graph(data, name + '/pdf/radar.pdf')
+    return radar.graph(data, name + '/pdf/radar.pdf')
 
-    return fig
 
 
 if __name__ == '__main__':

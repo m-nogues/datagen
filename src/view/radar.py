@@ -96,9 +96,8 @@ def radar_factory(num_vars, frame='circle'):
     return theta
 
 
-def graph(data, output = 'radar.pdf'):
-    n = len(data[0])
-    theta = radar_factory(n, frame='polygon')
+def graph(data, output='radar.pdf'):
+    theta = radar_factory(len(data[0]), frame='polygon')
 
     spoke_labels = data.pop(0)
     title, case_data = data[0]
@@ -119,3 +118,10 @@ def graph(data, output = 'radar.pdf'):
     plt.savefig(output)
     # plt.show()
     return fig
+
+
+if __name__ == "__main__":
+    data = [['Sulfate', 'Nitrate', 'EC', 'OC1', 'OC2', 'OC3', 'OP', 'CO', 'O3'],
+            ('Basecase', [[0.01, 0.02, 0.85, 0.19, 0.05, 0.10, 0.00, 0.00, 0.00]])]
+
+    graph(data)
