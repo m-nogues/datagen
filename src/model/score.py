@@ -5,12 +5,12 @@ ports = ['80', '21']
 
 def ips(indi):
     score = (indi['ips'] // 10) * .01
-    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['ips'] > 0 else 0.0
+    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['ips'] > 0 else .0
 
 
 def exchanges(indi):
     score = (indi['exchanges'] // 1000) * .01
-    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['exchanges'] > 0 else 0.0
+    return score if 1 > score >= .01 else 1 if score >= 1 else .01 if indi['exchanges'] > 0 else .0
 
 
 def response_avg(indi):
@@ -18,8 +18,8 @@ def response_avg(indi):
 
 
 def ports(indi):
-    score = len(indi['ports'])
-    return score
+    score = (len(indi['ports']) // 10) * .1
+    return score if 1 > score >= .1 else 1 if score >= 1 else .1 if len(indi['ports']) > 0 else .0
 
 
 def total_duration(indi):

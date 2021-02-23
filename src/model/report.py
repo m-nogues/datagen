@@ -2,8 +2,8 @@ import argparse
 import os
 
 from PyPDF2 import PdfFileMerger
+
 from model import score
-# from model.score import *
 from view import radar
 from view.csv2tab import csv2bar
 
@@ -32,6 +32,7 @@ def report(name, indi):
     fig = radar.graph(data, name + '/pdf/radar.pdf')
 
     return fig
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python script to create a report from different CSV file')
