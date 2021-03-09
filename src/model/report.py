@@ -32,7 +32,6 @@ def report(name, indi):
     return radar.graph(data, name + '/pdf/radar.pdf')
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Python script to create a report from different CSV file')
     parser.add_argument('csvs', nargs='+', help='CSVs to analyse')
