@@ -20,6 +20,7 @@ def csv2bar(csv):
     plt.xlabel(xy[0])
     plt.ylabel(xy[1])
 
+    plt.legend(loc='center left', bbox_to_anchor=(1, .5))
     plt.tight_layout()
 
     os.makedirs(basedir, exist_ok=True)
