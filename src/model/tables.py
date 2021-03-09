@@ -1,7 +1,6 @@
 import json
 import os
 from copy import deepcopy
-from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -186,7 +185,6 @@ def first_quartile(lives):
 def ip_life(pcap):
     """
     Performs the calculation for the indicators on life durations for the machines in the given network
-    :param network: the description of the network
     :return: the dictionary containing the variance and the percentage of machines in the first quartile
     """
     lives = [v['end'] - v['start'] for _, v in pcap['network'].items()]
