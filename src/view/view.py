@@ -85,6 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 QObjectCleanupHandler().add(self.centralwidget.layout())
             layout = QVBoxLayout(self.centralwidget)
 
+            print("Generating graphs")
             if not os.path.exists(name + '/pdf/results.pdf'):
                 if os.path.exists(name + '/csv/flow_matrix.csv'):
                     sc = FigureCanvas(csv2bar(name + '/csv/flow_matrix.csv'))
@@ -99,6 +100,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     layout.addWidget(sc)
                     sc.draw()
 
+            print("Generating spider graph")
             sc = FigureCanvas(report(name, indi))
             layout.addWidget(sc)
             sc.draw()
