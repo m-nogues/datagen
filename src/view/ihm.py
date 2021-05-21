@@ -30,7 +30,7 @@ class First(qtw.QMainWindow):
         self.width = 1000
         self.height = 750
         self.setWindowTitle(self.title)
-        image = qtg.QPixmap('background.jpg')
+        image = qtg.QPixmap('src/background.png')
         image.scaled(32, 32, qtc.Qt.KeepAspectRatio, qtc.Qt.FastTransformation)
         self.image0 = qtg.QImage(image)
         palette = qtg.QPalette()
