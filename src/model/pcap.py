@@ -2,13 +2,21 @@ import argparse
 import json
 import os
 import socket
-
+import hashlib
 import dpkt
 
 from model.tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
 
 # The list of IP address to filter from the PCAPs
 ip_to_filter = ['0.0.0.0', '224.0.0.22', '224.0.0.252']
+
+
+def md5sum(filename, blocksize=65536):
+    h = hashlib.md5()
+    with open(filename, "rb") as f:
+        for block in iter(lambda: f.read(blocksize), b""):
+            h.update(block)
+    return h.hexdigest()
 
 
 def pcap_to_json(pkt_file, pcap):
@@ -67,7 +75,6 @@ def pcap_to_json(pkt_file, pcap):
         except AttributeError:
             dport = 0
 
-
         # Flag packets sent to an ephemeral port as response to a previous exchange
         if (32768 <= dport <= 65535) or (dst in pcap['network']
                                          and src in pcap['network'][dst]["relations"]
@@ -99,7 +106,8 @@ def main(pcap_files):
     # Creates the JSON to write information to
     pcap = {'network': {}}
     # Creates a directory named the same as the PCAP file
-    name = '.'.join(os.path.basename(pcap_files[0]).split(".")[0:-1])
+    # name = '.'.join(os.path.basename(pcap_files[0]).split(".")[0:-1])
+    name = md5sum(pcap_files[0])
 
     os.makedirs(name, exist_ok=True)
 
