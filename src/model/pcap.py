@@ -108,19 +108,26 @@ def main(pcap_files):
             # Generates the JSON
             try:
                 with open(pcap_file, 'rb') as f:
+                    print("Opening " + pcap_file + " as PCAP")
                     pcap = pcap_to_json(dpkt.pcap.Reader(f), pcap)
             except ValueError:
                 with open(pcap_file, 'rb') as f:
+                    print("Failed\nOpening " + pcap_file + " as PCAPNG")
                     pcap = pcap_to_json(dpkt.pcapng.Reader(f), pcap)
 
         # Writes to JSON
+        print("Writing results as JSON")
         with open(name + '/result.json', 'w') as f:
             json.dump(pcap, f, indent='\t')
     else:
+        print("Opening previous results from JSON")
         with open(name + '/result.json', 'r') as f:
             pcap = json.load(f)
 
+    print("Finished reading file")
+
     # Generates the tables
+    print("Generating CSVs from results")
     machine_behavior(pcap['network'], name)
     machine_role(pcap['network'], name)
     machine_use(pcap['network'], name)
