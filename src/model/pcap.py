@@ -35,6 +35,22 @@ def pcap_to_json(pkt_file, pcap):
         if src in ip_to_filter or dst in ip_to_filter or '255' in dst.split('.'):
             continue
 
+        # Creates the machine if they don't already exist in our network
+        if src not in pcap['network']:
+            pcap['network'][src] = {"ip": src, "relations": {}, "protocols": {}, 'start': float(ts), 'end': float(ts)}
+        if dst not in pcap['network']:
+            pcap['network'][dst] = {"ip": dst, "relations": {}, "protocols": {}, 'start': float(ts), 'end': float(ts)}
+
+        # Sets the end of life of both source and destination machine to the time of arrival of the current packet
+        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = float(ts)
+
+        proto = ip.get_proto(ip.p).__name__
+
+        if proto in pcap['network'][src]['protocols']:
+            pcap['network'][src]['protocols'][proto] += 1
+        else:
+            pcap['network'][src]['protocols'][proto] = 1
+
         # Filters out layers that are not supported by the program
         if not (ip.p == dpkt.ip.IP_PROTO_TCP or ip.p == dpkt.ip.IP_PROTO_UDP):
             continue
@@ -51,14 +67,6 @@ def pcap_to_json(pkt_file, pcap):
         except AttributeError:
             dport = 0
 
-        # Creates the machine if they don't already exist in our network
-        if src not in pcap['network']:
-            pcap['network'][src] = {"ip": src, "relations": {}, 'start': float(ts), 'end': float(ts)}
-        if dst not in pcap['network']:
-            pcap['network'][dst] = {"ip": dst, "relations": {}, 'start': float(ts), 'end': float(ts)}
-
-        # Sets the end of life of both source and destination machine to the time of arrival of the current packet
-        pcap['network'][src]['end'] = pcap['network'][dst]['end'] = float(ts)
 
         # Flag packets sent to an ephemeral port as response to a previous exchange
         if (32768 <= dport <= 65535) or (dst in pcap['network']
