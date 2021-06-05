@@ -52,7 +52,10 @@ def pcap_to_json(pkt_file, pcap):
         # Sets the end of life of both source and destination machine to the time of arrival of the current packet
         pcap['network'][src]['end'] = pcap['network'][dst]['end'] = float(ts)
 
-        proto = ip.get_proto(ip.p).__name__
+        try:
+            proto = ip.get_proto(ip.p).__name__
+        except KeyError:
+            proto = ip.p
 
         if proto in pcap['network'][src]['protocols']:
             pcap['network'][src]['protocols'][proto] += 1
