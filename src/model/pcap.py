@@ -1,14 +1,24 @@
 import argparse
+import datetime
 import json
 import os
 import socket
 import hashlib
+from time import mktime
+
 import dpkt
 
 from model.tables import flow_matrix, indicators, machine_behavior, machine_role, machine_use
 
 # The list of IP address to filter from the PCAPs
 ip_to_filter = ["0.0.0.0", "224.0.0.22", "224.0.0.252"]
+
+
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 def md5sum(filename, blocksize=65536):
@@ -19,9 +29,27 @@ def md5sum(filename, blocksize=65536):
     return h.hexdigest()
 
 
-def pcap_to_json(pkt_file, pcap):
+def get_time_relations(intervals, ts):
+    t = datetime.datetime.fromtimestamp(ts).time()
+    for k, v in intervals.items():
+        s, e = k.split("-")
+        start = datetime.time.fromisoformat(s)
+        end = datetime.time.fromisoformat(e)
+        if start <= t <= end:
+            return v
+
+    key = "{}-{}".format(t.strftime("%H:%M"),
+                         (datetime.datetime.combine(datetime.date.today(), t)
+                          + datetime.timedelta(hours=2)).time().strftime("%H:%M"))
+    intervals[key] = {}
+
+    return intervals[key]
+
+
+def pcap_to_json(pkt_file, pcap, behaviors):
     """
     Analyses the PCAP file and creates the JSON description of the network it represents
+    :param behaviors: the dictionary to write the behaviors information to
     :param pcap: the dictionary to write the network information to
     :param pkt_file: the PCAP file
     :return: the network as a python dictionary / JSON
@@ -43,14 +71,21 @@ def pcap_to_json(pkt_file, pcap):
         if src in ip_to_filter or dst in ip_to_filter or "255" in dst.split("."):
             continue
 
+        # Filters out layers that are not supported by the program
+        if not (ip.p == dpkt.ip.IP_PROTO_TCP or ip.p == dpkt.ip.IP_PROTO_UDP):
+            continue
+
         # Creates the machine if they don"t already exist in our network
         if src not in pcap["network"]:
             pcap["network"][src] = {"ip": src, "relations": {}, "protocols": {}, "start": float(ts), "end": float(ts)}
+            behaviors[src] = {"relations": {}, "behavior": {}, "start": float(ts), "end": float(ts)}
         if dst not in pcap["network"]:
             pcap["network"][dst] = {"ip": dst, "relations": {}, "protocols": {}, "start": float(ts), "end": float(ts)}
+            behaviors[dst] = {"relations": {}, "behavior": {}, "start": float(ts), "end": float(ts)}
 
         # Sets the end of life of both source and destination machine to the time of arrival of the current packet
         pcap["network"][src]["end"] = pcap["network"][dst]["end"] = float(ts)
+        behaviors[src]["end"] = behaviors[dst]["end"] = float(ts)
 
         try:
             proto = ip.get_proto(ip.p).__name__
@@ -61,10 +96,6 @@ def pcap_to_json(pkt_file, pcap):
             pcap["network"][src]["protocols"][proto] += 1
         else:
             pcap["network"][src]["protocols"][proto] = 1
-
-        # Filters out layers that are not supported by the program
-        if not (ip.p == dpkt.ip.IP_PROTO_TCP or ip.p == dpkt.ip.IP_PROTO_UDP):
-            continue
 
         proto = ip.data
 
@@ -99,21 +130,42 @@ def pcap_to_json(pkt_file, pcap):
         else:
             pcap["network"][src]["relations"][dst] = {dport: 1}
 
+        # Add the packets to our recording of behaviors
+        if dst in behaviors[src]["relations"]:
+            behaviors[src]["relations"][dst]["services"].add(dport)
+        else:
+            behaviors[src]["relations"][dst] = {"services": {dport}}
+
+        # Add the packets to our recording of behaviors with time notions for future generation
+        time_interval = get_time_relations(behaviors[src]["behavior"], float(ts))
+        if dport in time_interval:
+            time_interval[dport] += 1
+        else:
+            time_interval[dport] = 1
+
     # Filter out the machines with no relations in our network
     pcap["network"] = {k: v for k, v in pcap["network"].items() if pcap["network"][k]["relations"]}
 
-    return pcap
+    return pcap, behaviors
 
 
-def clean_behaviors(network):
-    behaviors = {}
-    for k, v in network.items():
-        behaviors[k] = {c: val for c, val in v.items() if c != "ip" and c != "protocols"}
-    for src in behaviors:
-        behaviors[src]["relations"] = {k: v for k, v in behaviors[src]["relations"] if k != "response"}
+def rename_keys(d, keys):
+    return dict([(keys.get(k), v) for k, v in d.items()])
 
-    return behaviors
 
+def clean_behaviors(behaviors):
+    dict_ip = {}
+    i = 0
+    for ip in behaviors:
+        dict_ip[ip] = i
+        i += 1
+
+    cleaned_behaviors = rename_keys(behaviors, dict_ip)
+
+    for k, v in cleaned_behaviors.items():
+        v["relations"] = rename_keys(v["relations"], dict_ip)
+
+    return cleaned_behaviors
 
 def main(pcap_files):
     # Creates the JSON to write information to
@@ -131,11 +183,11 @@ def main(pcap_files):
             try:
                 with open(pcap_file, "rb") as f:
                     print("Opening " + pcap_file + " as PCAP")
-                    pcap = pcap_to_json(dpkt.pcap.Reader(f), pcap)
+                    pcap, behaviors = pcap_to_json(dpkt.pcap.Reader(f), pcap, behaviors)
             except ValueError:
                 with open(pcap_file, "rb") as f:
                     print("Failed\nOpening " + pcap_file + " as PCAPNG")
-                    pcap = pcap_to_json(dpkt.pcapng.Reader(f), pcap)
+                    pcap, behaviors = pcap_to_json(dpkt.pcapng.Reader(f), pcap, behaviors)
 
         # Writes to JSON
         print("Writing results as JSON")
@@ -156,8 +208,9 @@ def main(pcap_files):
     flow_matrix(pcap["network"], name)
     indi = indicators(pcap, name)
 
-    # Extract behaviors from machines
-    behaviors = clean_behaviors(pcap["network"])
+    # Cleanse behaviors from sensitive information
+    with open(name + "/behaviors.json", "w") as f:
+        json.dump(clean_behaviors(behaviors), f, indent="\t", cls=SetEncoder)
 
     return name, pcap, indi
 
