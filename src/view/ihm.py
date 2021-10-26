@@ -15,8 +15,8 @@ from PyQt5 import QtWidgets as qtw
 from model import pcap
 from view.csv2tab import csv2bar
 from view.jsonread import json_report
-from report import merge_pdfs
-from score import score
+from model.report import merge_pdfs
+from model.score import score
 
 
 class First(qtw.QMainWindow):
