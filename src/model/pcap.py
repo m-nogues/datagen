@@ -4,7 +4,6 @@ import json
 import os
 import socket
 import hashlib
-from time import mktime
 
 import dpkt
 
@@ -35,7 +34,7 @@ def get_time_relations(intervals, ts):
         s, e = k.split("-")
         start = datetime.time.fromisoformat(s)
         end = datetime.time.fromisoformat(e)
-        if start <= t <= end:
+        if (start <= t <= end) or (t >= start >= end) or (t <= end <= start):
             return v
 
     key = "{}-{}".format(t.strftime("%H:%M"),
@@ -167,6 +166,7 @@ def clean_behaviors(behaviors):
 
     return cleaned_behaviors
 
+
 def main(pcap_files):
     # Creates the JSON to write information to
     pcap = {"network": {}}
@@ -193,10 +193,16 @@ def main(pcap_files):
         print("Writing results as JSON")
         with open(name + "/result.json", "w") as f:
             json.dump(pcap, f, indent="\t")
+
+        # Cleanse behaviors from sensitive information and writes it to JSON
+        with open(name + "/behaviors.json", "w") as f:
+            json.dump(clean_behaviors(behaviors), f, indent="\t", cls=SetEncoder)
     else:
         print("Opening previous results from JSON")
         with open(name + "/result.json", "r") as f:
             pcap = json.load(f)
+        # with open(name + "/behaviors.json", "r") as f:
+        #     behaviors = json.load(f)
 
     print("Finished reading file")
 
@@ -208,9 +214,7 @@ def main(pcap_files):
     flow_matrix(pcap["network"], name)
     indi = indicators(pcap, name)
 
-    # Cleanse behaviors from sensitive information
-    with open(name + "/behaviors.json", "w") as f:
-        json.dump(clean_behaviors(behaviors), f, indent="\t", cls=SetEncoder)
+    # Generate config files for agents from behaviors
 
     return name, pcap, indi
 
